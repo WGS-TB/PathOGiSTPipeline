@@ -736,7 +736,7 @@ def visualize(param):
 
 def main():
     MAJOR_VERSION = 0
-    MINOR_VERSION = 4
+    MINOR_VERSION = 3
 
     parser = argparse.ArgumentParser(description=('PathOGiST Version %d.%d\n' +
                     'Copyright (C) 2018 Leonid Chindelevitch, Cedric Chauve, William Hsiao')
