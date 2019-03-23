@@ -515,6 +515,9 @@ def call_clustering_commands(clustering_args,run_args,denovo_calls_dists_paths,t
                 logger.info(distance_matrix_path)
                 distances[genotype] = pathogist.io.open_distance_file(distance_matrix_path)
     for genotype in denovo_distances_paths:
+        logger.info(genotype)
+        logger.info(denovo_distances_paths[genotype]+"abc")
+    for genotype in denovo_distances_paths:
         distances[genotype] = pathogist.io.open_distance_file(denovo_distances_paths[genotype])
     logger.info(' Finished creating distance matrices.')
 
