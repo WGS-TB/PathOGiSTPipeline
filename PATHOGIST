@@ -282,7 +282,7 @@ def run_kwip(kwip_args,forward_reads_paths,reverse_reads_paths,threads,temp_dir)
             kwip_command.append('--%s' % arg)
     except:
         pass
-
+    print(temp_dir)
     # Add the distance output path
     kwip_dist_path = '%s/kwip_dist.tsv' % temp_dir
     kwip_command.extend(['-d', kwip_dist_path])
