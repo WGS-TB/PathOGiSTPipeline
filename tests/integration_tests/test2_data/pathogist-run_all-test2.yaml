@@ -10,7 +10,7 @@ threads: 1
 # Select what tools to run: 1 to run and 0 to not run.
 run:
   snippy: 1
-  kwip: 1
+  kwip: 0
   prince: 1
   spotyping: 1
   mentalist: 1
