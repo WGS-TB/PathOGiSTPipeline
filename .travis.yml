@@ -13,4 +13,4 @@ install:
 
 script: 
     - tests/unit_tests/unit_tests.sh
-    - travis_wait 60 tests/integration_tests/integration_test.sh
+    - travis_wait 180 tests/integration_tests/integration_test.sh
