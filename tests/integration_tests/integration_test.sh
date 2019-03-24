@@ -12,6 +12,7 @@ conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
 conda install kwip --yes
+free -m
 kwip -d tests/integration_tests/temp_dir/kwip_dist.tsv tests/integration_tests/temp_dir/SRR6152717.ct.gz tests/integration_tests/temp_dir/SRR6153024.ct.gz
 : '
 #conda install conda-build --yes
