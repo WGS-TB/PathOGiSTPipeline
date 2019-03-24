@@ -8,6 +8,9 @@ chmod +x anaconda.sh
 export PATH=/home/travis/anaconda3/bin:$PATH
 #ls /home/travis/
 conda update --yes conda
+conda install kwip --yes
+kwip -h
+: '
 #conda install conda-build --yes
 #conda install --file ../../conda/environment.yaml --yes 
 conda config --add channels defaults
@@ -32,3 +35,4 @@ python -m unittest tests/integration_tests/test3_integration.py
 ./PATHOGIST run tests/integration_tests/test4_data/pathogist-run_all-test4.yaml 
 
 python -m unittest tests/integration_tests/test4_integration.py
+'
