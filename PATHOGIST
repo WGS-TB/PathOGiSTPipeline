@@ -282,7 +282,6 @@ def run_kwip(kwip_args,forward_reads_paths,reverse_reads_paths,threads,temp_dir)
             kwip_command.append('--%s' % arg)
     except:
         pass
-
     # Add the distance output path
     kwip_dist_path = '%s/kwip_dist.tsv' % temp_dir
     kwip_command.extend(['-d', kwip_dist_path])
@@ -290,7 +289,7 @@ def run_kwip(kwip_args,forward_reads_paths,reverse_reads_paths,threads,temp_dir)
     # Specify the paths to the khmer hashes to kwip
     for hash_path in hash_paths:
         kwip_command.append(hash_path)
-
+    logger.info(kwip_command)
     logger.info(" Running kWIP...")
     subprocess.call(kwip_command)
     logger.info(" Finished running kWIP.")
@@ -515,6 +514,9 @@ def call_clustering_commands(clustering_args,run_args,denovo_calls_dists_paths,t
                 distance_matrix_path = clustering_args['distances'][genotype]
                 logger.info(distance_matrix_path)
                 distances[genotype] = pathogist.io.open_distance_file(distance_matrix_path)
+    for genotype in denovo_distances_paths:
+        logger.info(genotype)
+        logger.info(denovo_distances_paths[genotype]+"abc")
     for genotype in denovo_distances_paths:
         distances[genotype] = pathogist.io.open_distance_file(denovo_distances_paths[genotype])
     logger.info(' Finished creating distance matrices.')
