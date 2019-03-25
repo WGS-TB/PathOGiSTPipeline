@@ -18,9 +18,9 @@ conda config --add channels conda-forge
 #conda install conda-build --yes
 #conda install --file ../../conda/environment.yaml --yes 
 
-conda create --name pathogist --yes 
+conda create -q --name pathogist --yes 
 source activate pathogist 
-conda install pathogist --yes
+conda install pathogist --yes -q
 
 
 PATHOGIST run tests/integration_tests/test_data/pathogist-run_all-test.yaml 
