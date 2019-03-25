@@ -11,10 +11,10 @@ conda update --yes conda
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
-conda install kwip --yes
-free -m
-kwip -d tests/integration_tests/temp_dir/kwip_dist.tsv tests/integration_tests/temp_dir/SRR6152717.ct.gz tests/integration_tests/temp_dir/SRR6153024.ct.gz
-: '
+#conda install kwip --yes
+#free -m
+#kwip -d tests/integration_tests/temp_dir/kwip_dist.tsv tests/integration_tests/temp_dir/SRR6152717.ct.gz tests/integration_tests/temp_dir/SRR6153024.ct.gz
+
 #conda install conda-build --yes
 #conda install --file ../../conda/environment.yaml --yes 
 
@@ -23,7 +23,7 @@ source activate pathogist
 conda install pathogist --yes
 
 
-./PATHOGIST run tests/integration_tests/test_data/pathogist-run_all-test.yaml 
+PATHOGIST run tests/integration_tests/test_data/pathogist-run_all-test.yaml 
 
 python -m unittest tests/integration_tests/test_integration.py
 # Run Genotyping Software
@@ -37,4 +37,4 @@ python -m unittest tests/integration_tests/test3_integration.py
 ./PATHOGIST run tests/integration_tests/test4_data/pathogist-run_all-test4.yaml 
 
 python -m unittest tests/integration_tests/test4_integration.py
-'
+
