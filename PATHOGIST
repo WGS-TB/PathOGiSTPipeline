@@ -347,22 +347,24 @@ def run_spotyping(spotyping_args,forward_reads,reverse_reads,temp_dir):
         except:
             pass
         # Specify the path the to the forward reads of the sample for spotyping
-        #spotyping_command.append(forward_reads[accession])
-        #spotyping_command.append(reverse_reads[accession])
-        subprocess.call(['cp', '-L', forward_reads[accession], temp_dir] )
-        subprocess.call(['cp', '-L', reverse_reads[accession], temp_dir] )
-        for_unzipped = forward_reads[accession].split('/')[-1].split('.gz')[0]
-        rev_unzipped = reverse_reads[accession].split('/')[-1].split('.gz')[0]
-        for_zipped = forward_reads[accession].split('/')[-1]
-        rev_zipped = reverse_reads[accession].split('/')[-1]
-        subprocess.call(['gunzip', '-f', temp_dir + '/' + for_zipped] )
-        subprocess.call(['gunzip', '-f', temp_dir + '/' + rev_zipped] )
-        spotyping_command.append(temp_dir + '/' + for_unzipped)		
-        spotyping_command.append(temp_dir + '/' + rev_unzipped)
-        logger.info(" Running SpoTyping on accession %s" % accession)
-        subprocess.call(spotyping_command)
-        subprocess.call(['rm', temp_dir + '/' + for_unzipped] )
-        subprocess.call(['rm', temp_dir + '/' + rev_unzipped] )
+        if spotyping_command.append(forward_reads[accession]).endswith(".gz") == False:
+            spotyping_command.append(forward_reads[accession])
+            spotyping_command.append(reverse_reads[accession])
+        else:
+            subprocess.call(['cp', '-L', forward_reads[accession], temp_dir] )
+            subprocess.call(['cp', '-L', reverse_reads[accession], temp_dir] )
+            for_unzipped = forward_reads[accession].split('/')[-1].split('.gz')[0]
+            rev_unzipped = reverse_reads[accession].split('/')[-1].split('.gz')[0]
+            for_zipped = forward_reads[accession].split('/')[-1]
+            rev_zipped = reverse_reads[accession].split('/')[-1]
+            subprocess.call(['gunzip', '-f', temp_dir + '/' + for_zipped] )
+            subprocess.call(['gunzip', '-f', temp_dir + '/' + rev_zipped] )
+            spotyping_command.append(temp_dir + '/' + for_unzipped)        
+            spotyping_command.append(temp_dir + '/' + rev_unzipped)
+            logger.info(" Running SpoTyping on accession %s" % accession)
+            subprocess.call(spotyping_command)
+            subprocess.call(['rm', temp_dir + '/' + for_unzipped] )
+            subprocess.call(['rm', temp_dir + '/' + rev_unzipped] )
         logger.info(" Finished running SpoTyping on accession %s" % accession)
     logger.info(" Finished running SpoTyping.")
     return spoligo_calls_paths
