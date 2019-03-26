@@ -125,7 +125,7 @@ def run_snippy(snippy_args,forward_reads_paths,reverse_reads_paths,threads,temp_
 def install_spotyping():    
     install_path = os.environ['PATH'].split(os.pathsep)[0]
     if os.path.isfile(install_path + '/ref/spacer.fasta') == False:
-        subprocess.call(['wget', '-x', '-P', install_path + '/ref/', 
+        subprocess.call(['wget', '-q', '-x', '-P', install_path + '/ref/', 
             'https://raw.githubusercontent.com/matnguyen/SpoTyping/master/SpoTyping-v3.0-commandLine/ref/spacer.fasta'])
         subprocess.call(['cp', install_path + 
             '/ref/raw.githubusercontent.com/matnguyen/SpoTyping/master/SpoTyping-v3.0-commandLine/ref/spacer.fasta',
@@ -135,7 +135,7 @@ def install_mentalist():
     install_path = os.environ['PATH'].split(os.pathsep)[0]
     julia_dir=install_path+"/julia_mentalist"
     if os.path.isfile(julia_dir + '/julia-1.1.0/bin/julia') == False:
-        subprocess.call(['wget', '-x', '-P', julia_dir, 
+        subprocess.call(['wget', '-q', '-x', '-P', julia_dir, 
             'https://julialang-s3.julialang.org/bin/linux/x64/1.1/julia-1.1.0-linux-x86_64.tar.gz'])
         subprocess.call(['tar', '-C', julia_dir, '-xzf', 
             julia_dir+'/julialang-s3.julialang.org/bin/linux/x64/1.1/julia-1.1.0-linux-x86_64.tar.gz'])
@@ -147,7 +147,7 @@ def install_mentalist():
     #julia_command = julia_dir + '/julia-1.1.0/bin/julia'+' -e \'import Pkg; Pkg.add("%s")\'' % (pkg)
     #subprocess.call(julia_command, shell=True)
     if os.path.isfile(julia_dir + '/MentaLiST-65451e75e5cfd168c23989a0ef50fcf545cc8e57/src/MentaLiST.jl') == False:
-        subprocess.call(['wget', '-x', '-P', julia_dir, 
+        subprocess.call(['wget', '-q', '-x', '-P', julia_dir, 
             'https://github.com/WGS-TB/MentaLiST/archive/65451e7.zip'])
         subprocess.call(['unzip', 
             julia_dir+'/github.com/WGS-TB/MentaLiST/archive/65451e7.zip', '-d', julia_dir])
@@ -282,7 +282,6 @@ def run_kwip(kwip_args,forward_reads_paths,reverse_reads_paths,threads,temp_dir)
             kwip_command.append('--%s' % arg)
     except:
         pass
-
     # Add the distance output path
     kwip_dist_path = '%s/kwip_dist.tsv' % temp_dir
     kwip_command.extend(['-d', kwip_dist_path])
@@ -290,7 +289,7 @@ def run_kwip(kwip_args,forward_reads_paths,reverse_reads_paths,threads,temp_dir)
     # Specify the paths to the khmer hashes to kwip
     for hash_path in hash_paths:
         kwip_command.append(hash_path)
-
+    logger.info(kwip_command)
     logger.info(" Running kWIP...")
     subprocess.call(kwip_command)
     logger.info(" Finished running kWIP.")
@@ -350,8 +349,6 @@ def run_spotyping(spotyping_args,forward_reads,reverse_reads,temp_dir):
         # Specify the path the to the forward reads of the sample for spotyping
         #spotyping_command.append(forward_reads[accession])
         #spotyping_command.append(reverse_reads[accession])
-        print(forward_reads[accession])
-        #sys.exit()
         subprocess.call(['cp', '-L', forward_reads[accession], temp_dir] )
         subprocess.call(['cp', '-L', reverse_reads[accession], temp_dir] )
         for_unzipped = forward_reads[accession].split('/')[-1].split('.gz')[0]
