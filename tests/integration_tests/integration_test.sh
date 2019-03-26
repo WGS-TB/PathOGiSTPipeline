@@ -35,5 +35,5 @@ PATHOGIST run tests/integration_tests/test4_data/pathogist-run_all-test4.yaml
 python -m unittest tests/integration_tests/test4_integration.py
 
 # Run Genotyping Software
-PATHOGIST run tests/integration_tests/test2_data/pathogist-run_all-test2.yaml 
+./PATHOGIST run tests/integration_tests/test2_data/pathogist-run_all-test2.yaml 
 python -m unittest tests/integration_tests/test2_integration.py
