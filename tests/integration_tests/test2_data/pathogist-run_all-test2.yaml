@@ -9,11 +9,11 @@ temp: tests/integration_tests/temp_dir
 threads: 2
 # Select what tools to run: 1 to run and 0 to not run.
 run:
-  snippy: 1
-  kwip: 1
-  prince: 1
+  snippy: 0
+  kwip: 0
+  prince: 0
   spotyping: 1
-  mentalist: 1
+  mentalist: 0
 # Command line options for tools to genotype your raw reads
 genotyping:
   input_reads:
