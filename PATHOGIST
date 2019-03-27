@@ -347,7 +347,7 @@ def run_spotyping(spotyping_args,forward_reads,reverse_reads,temp_dir):
         except:
             pass
         # Specify the path the to the forward reads of the sample for spotyping
-        if spotyping_command.append(forward_reads[accession]).endswith(".gz") == False:
+        if forward_reads[accession].endswith(".gz") == False:
             spotyping_command.append(forward_reads[accession])
             spotyping_command.append(reverse_reads[accession])
         else:
