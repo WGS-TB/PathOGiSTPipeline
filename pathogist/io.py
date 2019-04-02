@@ -136,18 +136,21 @@ def read_spotype_calls(calls_path):
     calls = {}
     with open(calls_path,'r') as calls_file:
         for line in calls_file:
-            values = line.split("\t")
-            seq = values[0].split("&")
-            forward = seq[0]
-            reverse = seq[1]
-            sample = get_sample_name(forward, reverse)
-            spoligotype = []
-            if(len(values[1]) == 43):
-                for char in str(values[1]):
-                    spoligotype.append(int(char))
-                calls[sample] = numpy.array(spoligotype)
-    assert( len(set([len(calls[sample]) for sample in calls.keys()])) == 1 ), \
-        "Samples do not have the same number of Spoligotype calls."
+            call_path = line.strip()
+            with open(call_path, 'r') as call_file:
+                call = call_file.read()
+                values = call.split("\t")
+                seq = values[0].split("&")
+                forward = seq[0]
+                reverse = seq[1]
+                sample = get_sample_name(forward, reverse)
+                spoligotype = []
+                if(len(values[1]) == 43):
+                    for char in str(values[1]):
+                        spoligotype.append(int(char))
+                    calls[sample] = numpy.array(spoligotype)
+        assert( len(set([len(calls[sample]) for sample in calls.keys()])) == 1 ), \
+            "Samples do not have the same number of Spoligotype calls."
     return calls
     
 

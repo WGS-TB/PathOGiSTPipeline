@@ -139,7 +139,8 @@ def correlation(param):
     logger.debug("Opening distance matrix...")
     distance_matrix = pathogist.io.open_distance_file(param.distance_matrix)
     logger.debug("Creating and solving correlation clustering problem ... ")
-    clustering = pathogist.cluster.correlation(distance_matrix,param.threshold,param.all_constraints,param.solver,param.method, param.presolve)
+    #clustering = pathogist.cluster.correlation(distance_matrix,param.threshold,param.all_constraints,param.solver,param.method, param.presolve)
+    clustering = pathogist.cluster.correlation(distance_matrix,param.threshold,param.all_constraints,param.method)
     logger.debug("Outputting clustering...")
     pathogist.io.output_clustering(clustering,param.output_path)
 
@@ -265,12 +266,12 @@ def main():
     corr_parser.add_argument("-a", "--all_constraints", action="store_true", default=False,
                              help = "add all constraints to the optimization problem, "
                                   + "not just those with mixed signs.")
-    corr_parser.add_argument("-s","--solver",type=str,choices=['cplex','pulp'],default='cplex',
-                             help="LP solver interface to use")
+    #corr_parser.add_argument("-s","--solver",type=str,choices=['cplex','pulp'],default='cplex',
+    #                         help="LP solver interface to use")
     corr_parser.add_argument("-m","--method",type=str,choices=['C4','ILP'],default='ILP',
                              help="Method for correlation clustering")
-    corr_parser.add_argument("-p","--presolve", action="store_true", default=False, 
-                             help="presolve the ILP")
+    #corr_parser.add_argument("-p","--presolve", action="store_true", default=False, 
+    #                         help="presolve the ILP")
 
     # Consensus clustering command line arguments
     cons_parser = subparsers.add_parser(name='consensus',

@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 stdout = logging.StreamHandler(sys.stdout)
 logger.handlers = []
 logger.addHandler(stdout)
+#logger.setLevel(logging.INFO)
 
 def mixed_triplets(d):
     for i, j, k in itertools.combinations(range(d.shape[0]), 3):
@@ -101,26 +102,32 @@ def processProblemWithPuLP(weights, all_constraints):
     logger.debug("Finished PuLP solving.")
     return solMatrix
 
-def processProblem(Distances, all_constraints, presolve=True):
+def processProblem(Distances, all_constraints, start_solution=None):
     logger.debug("Creating problem instance ... ")
     my_prob = cplex.Cplex()
     N = Distances.shape[0]
     numConstraints = populateByNonZero(my_prob, Distances) if all_constraints else populateByNonZero_only_mixed(my_prob, Distances)
     gc.collect()
-    if not presolve:
-    	my_prob.parameters.preprocessing.presolve.set(0) # try without this also.
+    #if not presolve:
+    if start_solution is not None:
+        start_vector = [start_solution[i, j] for i, j in itertools.combinations(range(N), 2)]
+        my_prob.MIP_starts.add([range(len(start_vector)), start_vector], my_prob.MIP_starts.effort_level.solve_MIP) # CHANGE HERE!!
+
+    my_prob.parameters.preprocessing.presolve.set(0) # try without this also.
     my_prob.parameters.emphasis.memory.set(1)  # try without this also.
-    my_prob.parameters.timelimit.set(3600 * 5)
-    # my_prob.parameters.simplex.display.set(2)
+    my_prob.parameters.timelimit.set(3600 * 2)
+    #my_prob.parameters.workmem.set(1024)
+    #my_prob.parameters.mip.strategy.file.set(3)
+    my_prob.parameters.simplex.display.set(2)
     # set optimality gap to 1 over sum of all the negative weights
-    sum_neg = sum(Distances[Distances < 0])
-    my_prob.parameters.mip.tolerances.mipgap.set(1/abs(sum_neg))
+    #sum_neg = sum(Distances[Distances < 0])
+    #my_prob.parameters.mip.tolerances.mipgap.set(1/abs(sum_neg))
     num_iterations = 0
     logger.debug("Solving ... ")
     while True:
         num_iterations += 1
         try:
-            sol = my_prob.solve()
+            my_prob.solve()
             #print("iterations:", my_prob.solution.progress.get_num_iterations())
             
         except CplexError as exc:
@@ -150,11 +157,12 @@ def processProblem(Distances, all_constraints, presolve=True):
             break
         logger.debug("Re-optimizing with all violated constraints added ...")
     logger.debug("OBJ value: %.f" % my_prob.solution.get_objective_value())
-    #print(my_prob.solution.MIP.get_mip_relative_gap())
-    #print(my_prob.solution.MIP.get_best_objective())
-    #print(my_prob.solution.get_objective_value())
-    logger.debug(numConstraints, num_iterations, sep='\t')
-    logger.debug(my_prob.solution.status[my_prob.solution.get_status()])
+    print(my_prob.solution.MIP.get_mip_relative_gap())
+    print(my_prob.solution.MIP.get_best_objective())
+    print("objective", my_prob.solution.get_objective_value())
+    print("constraints", numConstraints)
+    print("iterations", num_iterations)
+    print("status", my_prob.solution.status[my_prob.solution.get_status()])
     logger.debug("Finished CPLEX solving.")
     return solMatrix
 
@@ -480,7 +488,7 @@ def make_clustering(sol_matrix):
 
     return clustering
 
-def correlation(distance_matrix, threshold, all_constraints=False, solver="cplex", method='ILP', presolve=True):
+def correlation(distance_matrix, threshold, all_constraints=False, method='ILP'):
     '''
     Given a distance matrix as a Pandas DataFrame and a distance threshold, solve a correlation
     clustering problem instance LP problem and then apply the Chawla et al. 2015 rounding algorithm,
@@ -503,15 +511,33 @@ def correlation(distance_matrix, threshold, all_constraints=False, solver="cplex
         clustering = multiple_c4(distance_matrix, threshold)
     else:
         #logger.info("Solving instance for threshold value " + str(threshold) + " ...")
-        if solver == 'cplex':
-            sol_matrix = processProblem(weight_matrix.values, all_constraints, presolve)
-            if not sol_matrix:
-                raise CplexError
-        elif solver == 'pulp':
-            sol_matrix = processProblemWithPuLP(weight_matrix.values, all_constraints)
-        else:
-            print("Error: unsupported solver %s" % (solver))
-            sys.exit(1) 
+        #if solver == 'cplex':
+        #    if not sol_matrix:
+        #        raise CplexError
+        #elif solver == 'pulp':
+        #    sol_matrix = processProblemWithPuLP(weight_matrix.values, all_constraints)
+        #else:
+        #    print("Error: unsupported solver %s" % (solver))
+        #    sys.exit(1) 
+        #    if not sol_matrix:
+        print("threshold", threshold)
+        print("method", method)
+        print("all_con", all_constraints)
+        
+        c4_clustering = c4_correlation(distance_matrix, threshold)
+        indexes = distance_matrix.index
+        N = distance_matrix.shape[0]
+        start_solution = numpy.ones((N, N))
+        numpy.fill_diagonal(start_solution, 0)
+        for i, j in itertools.combinations(range(N), 2):
+                if c4_clustering['Cluster'].loc[indexes[i]] == c4_clustering['Cluster'].loc[indexes[j]]:
+                    start_solution[i, j] = 0
+                    start_solution[j, i] = 0
+
+        sol_matrix = processProblem(weight_matrix.values, all_constraints, start_solution)
+        #sol_matrix = processProblem(weight_matrix.values, all_constraints)
+        if not sol_matrix:
+            raise CplexError
         list_of_clusters = sorted(make_clustering(sol_matrix), key=lambda x:x[0])
         clustering = clustering_to_pandas(list_of_clusters,samples)
     
@@ -783,3 +809,11 @@ def adjusted_rand_index(clustering1,clustering2):
     '''
     return sklearn.metrics.cluster.adjusted_rand_score(clustering1.sort_index().T.values.flatten(),
                                                        clustering2.sort_index().T.values.flatten())
+
+def cluster_purity(ground_truth, predicted):
+    y_true = numpy.array(ground_truth.loc[:,'Cluster'])
+    y_pred = numpy.array(predicted.loc[:,'Cluster'])
+    contingency_matrix = sklearn.metrics.cluster.contingency_matrix(y_true, y_pred)
+    return numpy.sum(numpy.amax(contingency_matrix, axis=0)) / numpy.sum(contingency_matrix)
+
+
