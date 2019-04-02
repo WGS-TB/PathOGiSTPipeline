@@ -39,68 +39,69 @@ def same_sign_triplets(d):
         if (d[i,j] <= 0 and d[i,k] <= 0 and d[j,k] <= 0) or (d[i,j] >= 0 and d[i,k] >= 0 and d[j,k] >= 0):
             yield i,j,k
 
-def processProblemWithPuLP(weights, all_constraints):
-    logger.debug("Creating problem instance ... ")
-    prob = pulp.LpProblem("problem", pulp.LpMinimize)
-    N = weights.shape[0]
-    numVariables = N * (N - 1) // 2
-    #variables = [pulp.LpVariable("x" + str(i), cat='Binary') for i in range(numVariables)]
-    variables = [pulp.LpVariable("x" + str(i), 0, 1) for i in range(numVariables)]
-    allPairs = list(itertools.combinations(range(N), 2))
-    mapDict = {pair : i for i, pair in enumerate(allPairs)}
-    #for i, j in allPairs:
-        #prob.solverModel.getVars()[mapDict[i, j]].start = start_solution[i, j]
-        #variables[mapDict[i, j]].setInitialValue(start_solution[i, j])
-    allWeights = [weights[i][j] for i, j in allPairs]
-    triplets = itertools.combinations(range(N), 3) if all_constraints else mixed_triplets(weights)
-    for i, j, k in triplets:
-        x1 = variables[mapDict[i, j]]
-        x2 = variables[mapDict[i, k]]
-        x3 = variables[mapDict[j, k]]
-        prob += x1 <= x2 + x3, "C_%d,%d,%d_1" % (i, j, k) 
-        prob += x2 <= x1 + x3, "C_%d,%d,%d_2" % (i, j, k)
-        prob += x3 <= x1 + x2, "C_%d,%d,%d_3" % (i, j, k)
-    prob += pulp.lpDot(variables, allWeights)
-    gc.collect()
-    logger.debug("Solving ... ")
-    solver = pulp.solvers.COIN()
-    prob.setSolver(solver)
-    #prob.solver.buildSolverModel(prob)
-    #for i, j in allPairs:
-    #    prob.solverModel.getVars()[mapDict[i, j]].start = start_solution[i, j]
-    while True:
-        status = prob.solve(pulp.COIN())
-        logger.debug("Solution status: %s" % pulp.LpStatus[status])
-        solMatrix = numpy.zeros((N, N))
-        for i, pair in enumerate(allPairs):
-            solMatrix[pair[0]][pair[1]] = pulp.value(variables[i])
-            solMatrix[pair[1]][pair[0]] = solMatrix[pair[0]][pair[1]]
-        solMatrix[solMatrix < 0] = 0
-        solMatrix[solMatrix > 1] = 1
-        if all_constraints:
-            break
-        logger.debug("Processing solution ... ")
-        # check if any same sign triangle is violated:
-        violated = False
-        for i, j, k in same_sign_triplets(weights):
-            a, b, c = sorted([solMatrix[i][j], solMatrix[i][k], solMatrix[j][k]])
-            EPSILON = 10**-8
-            if c - a - b > EPSILON: 
-                logger.debug("Constraint violated for triplet %s, %s and %s." % (i, j, k))
-                violated = True
-                x1 = variables[mapDict[i, j]]
-                x2 = variables[mapDict[i, k]]
-                x3 = variables[mapDict[j, k]]
 
-                prob += x1 <= x2 + x3, "C_%d,%d,%d_1" % (i, j, k)
-                prob += x2 <= x1 + x3, "C_%d,%d,%d_2" % (i, j, k)
-                prob += x3 <= x1 + x2, "C_%d,%d,%d_3" % (i, j, k)
-        if not violated:
-            break
-        logger.debug("Re-optimizing with all violated constraints added ...")
-    logger.debug("OBJ value: %.f" % prob.objective.value())
-    logger.debug("Finished PuLP solving.")
-    return solMatrix
+# def processProblemWithPuLP(weights, all_constraints):
+#     logger.debug("Creating problem instance ... ")
+#     prob = pulp.LpProblem("problem", pulp.LpMinimize)
+#     N = weights.shape[0]
+#     numVariables = N * (N - 1) // 2
+#     #variables = [pulp.LpVariable("x" + str(i), cat='Binary') for i in range(numVariables)]
+#     variables = [pulp.LpVariable("x" + str(i), 0, 1) for i in range(numVariables)]
+#     allPairs = list(itertools.combinations(range(N), 2))
+#     mapDict = {pair : i for i, pair in enumerate(allPairs)}
+#     #for i, j in allPairs:
+#         #prob.solverModel.getVars()[mapDict[i, j]].start = start_solution[i, j]
+#         #variables[mapDict[i, j]].setInitialValue(start_solution[i, j])
+#     allWeights = [weights[i][j] for i, j in allPairs]
+#     triplets = itertools.combinations(range(N), 3) if all_constraints else mixed_triplets(weights)
+#     for i, j, k in triplets:
+#         x1 = variables[mapDict[i, j]]
+#         x2 = variables[mapDict[i, k]]
+#         x3 = variables[mapDict[j, k]]
+#         prob += x1 <= x2 + x3, "C_%d,%d,%d_1" % (i, j, k)
+#         prob += x2 <= x1 + x3, "C_%d,%d,%d_2" % (i, j, k)
+#         prob += x3 <= x1 + x2, "C_%d,%d,%d_3" % (i, j, k)
+#     prob += pulp.lpDot(variables, allWeights)
+#     gc.collect()
+#     logger.debug("Solving ... ")
+#     solver = pulp.solvers.COIN()
+#     prob.setSolver(solver)
+#     #prob.solver.buildSolverModel(prob)
+#     #for i, j in allPairs:
+#     #    prob.solverModel.getVars()[mapDict[i, j]].start = start_solution[i, j]
+#     while True:
+#         status = prob.solve(pulp.COIN())
+#         logger.debug("Solution status: %s" % pulp.LpStatus[status])
+#         solMatrix = numpy.zeros((N, N))
+#         for i, pair in enumerate(allPairs):
+#             solMatrix[pair[0]][pair[1]] = pulp.value(variables[i])
+#             solMatrix[pair[1]][pair[0]] = solMatrix[pair[0]][pair[1]]
+#         solMatrix[solMatrix < 0] = 0
+#         solMatrix[solMatrix > 1] = 1
+#         if all_constraints:
+#             break
+#         logger.debug("Processing solution ... ")
+#         # check if any same sign triangle is violated:
+#         violated = False
+#         for i, j, k in same_sign_triplets(weights):
+#             a, b, c = sorted([solMatrix[i][j], solMatrix[i][k], solMatrix[j][k]])
+#             EPSILON = 10**-8
+#             if c - a - b > EPSILON:
+#                 logger.debug("Constraint violated for triplet %s, %s and %s." % (i, j, k))
+#                 violated = True
+#                 x1 = variables[mapDict[i, j]]
+#                 x2 = variables[mapDict[i, k]]
+#                 x3 = variables[mapDict[j, k]]
+#
+#                 prob += x1 <= x2 + x3, "C_%d,%d,%d_1" % (i, j, k)
+#                 prob += x2 <= x1 + x3, "C_%d,%d,%d_2" % (i, j, k)
+#                 prob += x3 <= x1 + x2, "C_%d,%d,%d_3" % (i, j, k)
+#         if not violated:
+#             break
+#         logger.debug("Re-optimizing with all violated constraints added ...")
+#     logger.debug("OBJ value: %.f" % prob.objective.value())
+#     logger.debug("Finished PuLP solving.")
+#     return solMatrix
 
 def processProblem(Distances, all_constraints, start_solution=None):
     logger.debug("Creating problem instance ... ")
@@ -133,7 +134,7 @@ def processProblem(Distances, all_constraints, start_solution=None):
         except CplexError as exc:
             if exc.args[2] == cplex.exceptions.error_codes.CPXERR_NO_MEMORY:
                 return
-        logger.debug("Processing solution ... ")
+        logger.debug(" Processing solution ... ")
         X = my_prob.solution.get_values()
         solMatrix = [[0 for i in range(N)] for j in range(N)]
         for ind, pair in enumerate(itertools.combinations(range(N),2)):
@@ -146,7 +147,7 @@ def processProblem(Distances, all_constraints, start_solution=None):
         for i,j,k in same_sign_triplets(Distances):
             a, b, c = sorted([solMatrix[i][j], solMatrix[i][k], solMatrix[j][k]])
             if c > a+b: # test triangle ineq.
-                logger.debug("Constraint violated for triplet %s, %s and %s." % (i,j,k))
+                logger.debug(" Constraint violated for triplet %s, %s and %s." % (i,j,k))
                 violated = True
                 my_prob.linear_constraints.add(rhs = [0,0,0], senses = ["G","G","G"])
                 my_prob.linear_constraints.set_coefficients(zip([numConstraints]*3, [mapDict[i,j], mapDict[i,k], mapDict[j,k]], [1,1,-1]))
@@ -167,7 +168,7 @@ def processProblem(Distances, all_constraints, start_solution=None):
     return solMatrix
 
 def populateByNonZero(prob, Distances):
-    logger.debug("Creating problem instance with all constraints")
+    logger.debug(" Creating problem instance with all constraints")
     Distances = Distances.astype(float)
     N = Distances.shape[0]
     numVariables = N * (N - 1) // 2
@@ -203,7 +204,7 @@ def populateByNonZero(prob, Distances):
     return numConstraints
 
 def populateByNonZero_only_mixed(prob, Distances):
-    logger.debug("Creating problem instance only with mixed constraints")
+    logger.debug(" Creating problem instance only with mixed constraints")
     N = Distances.shape[0]
     numVariables = int(N * (N - 1) / 2)
     mixed_trips = list(mixed_triplets(Distances))
@@ -312,7 +313,7 @@ def add_element_test(u, v, sol_matrix, weight_matrix):
     return random.random() < 1 - prob(u, v, sol_matrix, weight_matrix)
 
 def chawla_rounding(sol_matrix, weight_matrix):
-    logger.debug("Running Chawla rounding ... ")
+    logger.debug(" Running Chawla rounding ... ")
     v_set = set(range(len(sol_matrix)))
     clustering = []
     while len(v_set) > 0:
@@ -324,7 +325,7 @@ def chawla_rounding(sol_matrix, weight_matrix):
     return clustering
 
 def derandomized_chawla_rounding(sol_matrix, weight_matrix):
-    logger.debug("Running derandomized Chawla rounding ... ")
+    logger.debug(" Running derandomized Chawla rounding ... ")
     v_set = set(range(len(sol_matrix)))
 
     # setting all the probablities p_uv using function f
@@ -351,7 +352,7 @@ def clustering_to_pandas(list_of_clusters,samples):
     Returns representation of a clustering (represented as a list of lists) as a cluster assignment
     vector, represented as a Pandas Dataframe
     '''
-    logger.debug("Organizing clustering results ... ")
+    logger.debug(" Organizing clustering results ... ")
     clustering_temp = []
     for cluster_num,cluster in enumerate(list_of_clusters):
         for sample_num in cluster:
@@ -498,14 +499,12 @@ def correlation(distance_matrix, threshold, all_constraints=False, method='ILP')
     @param threshold: a threshold value, in form of an int or a float
     @param all_constraints: boolean indicating whether all triangle inequality constraints should be
                             used in the CPLEX problem
-    @param solver: the solver to use to solve the correlation clustering instance
     @param method: the method that is used to solve the correlation clustering, which is one of these: 'C4', 'ILP', 'C4+ILP'
     @rvalue clustering: the approximate optimal clustering represented as a Pandas DataFrame
     '''
     threshold = float(threshold)
     samples = distance_matrix.columns.values
-    weight_matrix = threshold - distance_matrix
-    
+    weight_matrix = threshold - distance_matrix    
     if method == 'C4':
         #clustering = c4_correlation(distance_matrix, threshold)
         clustering = multiple_c4(distance_matrix, threshold)
@@ -737,6 +736,31 @@ def cluster_vector_to_matrix(cluster_vector):
 
     return cluster_matrix
 
+def normalize_distances(distances):
+    '''
+    Normalize input distance matrices
+    '''
+    normal_distances = {}
+    for clustering in distances:
+        max_value = numpy.amax(distances[clustering])
+        normal_distances[clustering] = distances[clustering]/max_value
+    return normal_distances
+
+def construct_consensus_D(clusterings,normal_distances,fine_clusterings):
+    '''
+    Construct the D matrix as described in the document describing consensus clustering.
+    '''
+    samples = clusterings[list(clusterings.keys())[0]].columns.values
+    num_samples = len(samples)
+    D = pandas.DataFrame(numpy.zeros(shape=(num_samples,num_samples),dtype=float),
+                         index=samples,columns=samples)
+    for sample1,sample2 in itertools.combinations(samples,2):
+        for clustering in normal_distances:
+            if clusterings[clustering][sample1][sample2] == 0 or clustering in fine_clusterings:
+                D[sample1][sample2] += normal_distances[clustering][sample1][sample2]
+                D[sample2][sample1] = D[sample1][sample2]
+    return D
+
 def construct_consensus_weights(clustering_vectors,distances,fine_clusterings):
     '''
     @parameter clustering_vectors: dictionary of pandas dataframe representing clusterings as vectors
@@ -748,10 +772,7 @@ def construct_consensus_weights(clustering_vectors,distances,fine_clusterings):
     '''
     clusterings = {key: cluster_vector_to_matrix(clustering_vectors[key]) 
                    for key in clustering_vectors.keys()}
-    normal_distances = {}
-    for clustering in distances:
-        max_value = numpy.amax(distances[clustering])
-        normal_distances[clustering] = distances[clustering]/max_value
+    normal_distances = normalize_distances(distances)
     # now construct the Pi and D matrices
     samples = clusterings[list(clusterings.keys())[0]].columns.values
     num_samples = len(samples)
@@ -760,17 +781,11 @@ def construct_consensus_weights(clustering_vectors,distances,fine_clusterings):
     Pi = pandas.DataFrame(unlabeled_pi,index=samples,columns=samples)
     for clustering in clusterings:
         Pi = Pi.subtract(clusterings[clustering])
-    D = pandas.DataFrame(numpy.zeros(shape=(num_samples,num_samples),dtype=float),
-                         index=samples,columns=samples)
-    for sample1,sample2 in itertools.combinations(samples,2):
-        for clustering in normal_distances:
-            if clusterings[clustering][sample1][sample2] == 0 or clustering in fine_clusterings:
-                D[sample1][sample2] += normal_distances[clustering][sample1][sample2]
-                D[sample2][sample1] = D[sample1][sample2]
+    D = construct_consensus_D(clusterings,normal_distances,fine_clusterings)
     S = Pi.subtract(D)
     return S
 
-def consensus(distances,clusterings,fine_clusterings,weight_matrix=None, all_constraints=False,solver='cplex', method="ILP"):
+def consensus(distances,clusterings,fine_clusterings,weight_matrix=None, all_constraints=False, method="C4"):
     '''
     Solve an instane of consensus clustering.
     @param clusterings: dictionary of pandas dataframe representing multiple clusterings as vectors
@@ -781,13 +796,31 @@ def consensus(distances,clusterings,fine_clusterings,weight_matrix=None, all_con
     @param weight_matrix (optional): precomputed consensus clustering weight matrix
     @param all_constraints: boolean variable indicating whether to use all_constraints, or only those
                             involving mixed triplets
-    @param solver: the solver to use to solve the correlation clustering instance
     @rvalue clustering: a Pandas DataFrame
     '''
     if weight_matrix is None:
         #clustering_matrices = {key: cluster_vector_to_matrix(clusterings[key]) for key in clusterings.keys()}
         weight_matrix = construct_consensus_weights(clusterings,distances,fine_clusterings)
-    clustering = correlation(-weight_matrix, 0, all_constraints, solver, method)
+    clustering = correlation(-weight_matrix, 0, all_constraints, method)
+    '''
+    samples = weight_matrix.columns.values
+    
+    if solver == 'cplex':
+        sol_matrix = processProblem(weight_matrix.values,all_constraints)
+        if not sol_matrix:
+            raise CplexError
+    elif solver == 'pulp':
+        if solver == 'pulp':
+        sol_matrix = processProblemWithPuLP(weight_matrix.values,all_constraints)
+    else:
+        print("Error: unsupported solver %s" % (solver))
+        sys.exit(1)
+    list_of_clusters = sorted(derandomized_chawla_rounding(sol_matrix,weight_matrix.values)
+                               ,key=lambda x:x[0])
+    # Turn the list of clusters into pandas data frame
+    clustering = clustering_to_pandas(list_of_clusters,samples)
+    logger.info(" Done! %d clusters found" % clustering['Cluster'].values.max())
+    '''    
     clustering.columns = ['Consensus']
     return clustering
 

@@ -1,0 +1,5 @@
+tests/integration_tests/test3_data/snp_calls/SRR6152639.primitive.tab
+tests/integration_tests/test3_data/snp_calls/SRR6152640.primitive.tab
+tests/integration_tests/test3_data/snp_calls/SRR6152641.primitive.tab
+tests/integration_tests/test3_data/snp_calls/SRR6152642.primitive.tab
+tests/integration_tests/test3_data/snp_calls/SRR6152643.primitive.tab

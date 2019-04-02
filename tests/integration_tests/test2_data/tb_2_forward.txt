@@ -1,0 +1,2 @@
+tests/integration_tests/test2_data/fastq/SRR6152717_1.fastq.gz
+tests/integration_tests/test2_data/fastq/SRR6153024_1.fastq.gz

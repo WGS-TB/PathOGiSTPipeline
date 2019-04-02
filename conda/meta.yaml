@@ -1,21 +1,20 @@
-{% set version = "0.2.2" %}
+{% set version = "0.3.1" %}
 package:
   name: pathogist
   version: {{ version }}
 
 source:
   url: https://github.com/WGS-TB/PathOGiST/archive/v{{ version }}.tar.gz
-  sha256: b8caa400c4ef4453902c589acf3205c2dba966f4778fae48413e2c5a70ffa3ac
+  sha256: e6736276871399deb49d622ff37cf9e7f37f74579ba3daf0d0bf6f19f594c378
 
 build:
-  number: 1
-  skip: True # [osx]
+  number: 0
 
 requirements:
   host:
-    - python ==3.5
+    - python 3.5
   run:
-    - python
+    - python 3.5
     - numpy >=1.15.1
     - scipy >=1.1.0
     - pandas >=0.23.4
@@ -28,10 +27,14 @@ requirements:
     - mentalist
     - prince
     - snippy ==3.2
+    - khmer
+    - kwip
+    - vcflib
+    - spotyping3
 
-  test:
-    commands:
-      - pathogist -h
+test:
+  commands:
+    - PATHOGIST -h
 
 about:
   home: https://github.com/WGS-TB/PathOGiST

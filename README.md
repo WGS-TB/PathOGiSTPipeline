@@ -16,35 +16,33 @@
   - [ ] In each package file, add a header with copyright information
 - [ ] Documentation
 
-## Dependencies
-Do the following commands:
-* `pip install -r requirements.txt`.
-* `apt install coinor-cbc`
- 
+
 ## Installation
-You can `PATHOGIST` directly from this repo as long as you have the dependencies installed.
-We recommend you create a conda environment for PathOGiST, though, and install PathOGiST through conda.
-PathOGiSt requires Python 3.5, so create a conda environment with the right python version:
+*Note*: PathOGiST is currently not compatible with OSX
+
+We recommend you create a conda environment for PathOGiST, and install PathOGiST through conda.
+First set up Bioconda as per the instructions [here](https://bioconda.github.io/).
+PathOGiST requires Python 3.5 or newer:
 ```bash
-conda create --name pathogist python=3.5
+conda create --name pathogist 
 ```
 And then activate the environment and install PathOGiST:
 ```bash
 source activate pathogist
-conda install -c seanla pathogist
+conda install pathogist
 ```
 When inside the `pathogist` conda environment, you can then simply run `PATHOGIST -h`, for example.
 Note that you will need to install CPLEX separately, as CPLEX is proprietary software.
 
 ## Subcommands
 
-### Entire Pipeline (`PATHOGIST all`)
+### Entire Pipeline (`PATHOGIST run`)
 This subcommand runs the PathOGiST pipeline from start to finish 
 (i.e. distance matrix creation -> correlation clustering -> consensus clustering).
 
 The main input file is a YAML configuration file, which you can create with the command
 ```bash
-PATHOGIST all [path to where you want your config] --new_config
+PATHOGIST run [path to where you want your config] --new_config
 ```
 The configuration file will look like so:
 ```bash

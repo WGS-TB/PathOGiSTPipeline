@@ -1,11 +1,11 @@
 <tool id="visualization" name="PathOGiST - Visualization" version="1.0.0">
     <description>: Visualize distance matrix</description>
     <requirements>
-        <requirement type="package" version="0.0.1">pathogist</requirement>
+        <requirement type="package" version="0.3">pathogist</requirement>
     </requirements>
 
     <command><![CDATA[
-        PATHOGIST vis $distance $sample $pdf
+        PATHOGIST visualize $distance $sample $pdf
     ]]></command>
 
     <inputs>

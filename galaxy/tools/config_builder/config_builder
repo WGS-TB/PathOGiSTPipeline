@@ -1,0 +1,192 @@
+#!/usr/bin/env python
+
+import sys
+import yaml
+import argparse as ap
+import urllib.request as urllib
+
+# Version of PathOGiST
+MAJOR_VERSION = 0
+MINOR_VERSION = 3
+
+parser = ap.ArgumentParser(prog='config_builder', conflict_handler='resolve',
+                           description="Builds the config file for PathOGiST")
+
+parser.add_argument('forward', help="File to list of forward reads")
+parser.add_argument('reverse', help="File to list of reverse reads")
+parser.add_argument('output', help="Output prefix for final consensus clustering and visualization")
+
+tools = parser.add_argument_group('Tools')
+tools.add_argument('--snippy', action='store_true', help="Run Snippy")
+tools.add_argument('--kwip', action='store_true', help="Run Kwip")
+tools.add_argument('--prince', action='store_true', help="Run Prince")
+tools.add_argument('--spotyping', action='store_true', help="Run Spotyping")
+tools.add_argument('--mentalist', action='store_true', help="Run Mentalist")
+
+mentalist = parser.add_argument_group('Mentalist')
+mentalist.add_argument('--local_file', action='store_true', help="Use local database")
+mentalist.add_argument('--build_db', action='store_true', help="Build a database")
+mentalist.add_argument('--download_pubmlst', action='store_true', help="Download pubMLST scheme")
+mentalist.add_argument('--download_cgmlst', action='store_true', help="Download cgMLST scheme")
+mentalist.add_argument('--download_enterobase', action='store_true', help="Download Enterobase scheme")
+
+mentalist.add_argument('--local_db', metavar="STRING", help="Location of database")
+mentalist.add_argument('--kmer', metavar="INT", help="Kmer size")
+mentalist.add_argument('--fasta_files', metavar="STRING", help="Location of FASTA files for MLST scheme")
+mentalist.add_argument('--profile', metavar="STRING", help="Profile file for known genotypes")
+mentalist.add_argument('--scheme', metavar="STRING", help="Species name or scheme ID")
+mentalist.add_argument('--entero_scheme', metavar="STRING", help="(S)almonella, (Y)ersinia, or (E)scherichia/Shigella")
+mentalist.add_argument('--entero_type', metavar="STRING", help="'cg' or 'wg' for cgMLST or wgMLST, respectively.")
+mentalist.add_argument('--mutation_threshold', metavar="INT", help="Maximum number of mutations when looking for novel "
+                                                                   "alleles")
+mentalist.add_argument('--kt', metavar="INT", help="Minimum number of times a kmer is seen to be considered present "
+                                                   "in the sample")
+
+kwip = parser.add_argument_group('Kwip')
+kwip.add_argument('--N', metavar="INT", help="Number of tables")
+kwip.add_argument('--x', metavar="INT", help="Maximum table size")
+kwip.add_argument('--ksize', metavar="INT", help="kmer size to use")
+kwip.add_argument('--unique_kmers', metavar="INT", help="Approximate number of unique kmers in the input set")
+
+snippy = parser.add_argument_group('Snippy')
+snippy.add_argument('--reference', metavar="STRING", help="Reference genome. Supports FASTA, GenBank, EMBL (not GFF)")
+snippy.add_argument('--mapqual', metavar="INT", help="Minimum read mapping quality to consider")
+snippy.add_argument('--basequal', metavar="INT", help="Minimum base quality to consider")
+snippy.add_argument('--mincov', metavar="INT", help="Minimum coverage of variant site")
+snippy.add_argument('--minfrac', metavar="FLOAT", help="Minimum proportion for variant evidence")
+
+clustering = parser.add_argument_group('Clustering')
+clustering.add_argument('--fine_snp', action='store_true', help="Use SNP as a fine datatype")
+clustering.add_argument('--fine_mlst', action='store_true', help="Use MLST as a fine datatype")
+clustering.add_argument('--fine_kwip', action='store_true', help="Use Kwip as a fine datatype")
+clustering.add_argument('--fine_spoligo', action='store_true', help="Use Spoligotyping as a fine datatype")
+clustering.add_argument('--fine_cnv', action='store_true', help="Use CNV as a fine datatype")
+clustering.add_argument('--snp_thresh', metavar="INT", help="Threshold value for SNP")
+clustering.add_argument('--mlst_thresh', metavar="INT", help="Threshold value for MLST")
+clustering.add_argument('--kwip_thresh', metavar="INT", help="Threshold value for Kwip")
+clustering.add_argument('--spoligo_thresh', metavar="INT", help="Threshold value for Spoligotyping")
+clustering.add_argument('--cnv_thresh', metavar="INT", help="Threshold value for CNV")
+clustering.add_argument('--less_constraints', action='store_true', help="Use less constraints when clustering")
+clustering.add_argument('--method', metavar="STRING", help="Use `C4` or `ILP` as clustering method")
+clustering.add_argument('--no_presolve', action='store_true', help="Do not perform presolving")
+clustering.add_argument('--visualize', action='store_true', help="Visualize clusters")
+
+if len(sys.argv) == 1:
+    parser.print_usage()
+    sys.exit(1)
+
+args = parser.parse_args()
+
+urllib.urlretrieve("https://github.com/WGS-TB/PathOGiST/releases/download/v{0}.{1}/blank_config.yaml"
+                   .format(MAJOR_VERSION, MINOR_VERSION), 'blank_config.yaml')
+
+with open('blank_config.yaml') as f:
+    list_doc = yaml.load(f)
+
+for line in list_doc:
+    if line == 'temp':
+        list_doc[line] = 'tmp_dir'
+
+    if line == 'threads':
+        pass
+
+    if line == 'run':
+        if args.snippy:
+            list_doc[line]['snippy'] = 1
+        if args.kwip:
+            list_doc[line]['kwip'] = 1
+        if args.prince:
+            list_doc[line]['prince'] = 1
+        if args.spotyping:
+            list_doc[line]['spotyping'] = 1
+        if args.mentalist:
+            list_doc[line]['mentalist'] = 1
+
+    if line == 'genotyping':
+        # Forward and reverse reads
+        list_doc[line]['input_reads']['forward_reads'] = args.forward
+        list_doc[line]['input_reads']['reverse_reads'] = args.reverse
+
+        if args.mentalist:
+            if args.local_file:
+                list_doc[line]['mentalist']['local_file']['database'] = args.local_db
+            elif args.build_db:
+                list_doc[line]['mentalist']['build_db']['options']['k'] = args.kmer
+                list_doc[line]['mentalist']['build_db']['options']['fasta_files'] = args.fasta_files
+                list_doc[line]['mentalist']['build_db']['options']['profile'] = args.profile
+            elif args.download_pubmlst:
+                list_doc[line]['mentalist']['download_pubmlst']['options']['k'] = args.kmer
+                list_doc[line]['mentalist']['download_pubmlst']['options']['scheme'] = args.scheme
+            elif args.download_cgmlst:
+                list_doc[line]['mentalist']['download_cgmlst']['options']['k'] = args.kmer
+                list_doc[line]['mentalist']['download_cgmlst']['options']['scheme'] = args.scheme
+            elif args.download_enterobase:
+                list_doc[line]['mentalist']['download_enterobase']['options']['k'] = args.kmer
+                list_doc[line]['mentalist']['download_enterobase']['options']['scheme'] = args.entero_scheme
+                list_doc[line]['mentalist']['download_enterobase']['options']['type'] = args.entero_type
+
+            if args.mutation_threshold:
+                list_doc[line]['mentalist']['call']['options']['mutation_threshold'] = args.mutation_threshold
+            if args.kt:
+                list_doc[line]['mentalist']['call']['options']['kt'] = args.kt
+
+        if args.kwip:
+            if args.N:
+                list_doc[line]['kwip']['khmer_options']['N'] = args.N
+            if args.x:
+                list_doc[line]['kwip']['khmer_options']['x'] = args.x
+            if args.ksize:
+                list_doc[line]['kwip']['khmer_options']['ksize'] = args.ksize
+            if args.unique_kmers:
+                list_doc[line]['kwip']['khmer_options']['unique-kmers'] = args.unique_kmers
+
+        if args.snippy:
+            list_doc[line]['snippy']['options']['reference'] = args.reference
+            if args.mapqual:
+                list_doc[line]['snippy']['options']['mapqual'] = args.mapqual
+            if args.basequal:
+                list_doc[line]['snippy']['options']['basequal'] = args.basequal
+            if args.mincov:
+                list_doc[line]['snippy']['options']['mincov'] = args.mincov
+            if args.minfrac:
+                list_doc[line]['snippy']['options']['minfrac'] = args.minfrac
+
+    if line == 'clustering':
+        list_doc[line]['output_prefix'] = args.output
+
+        fine = []
+        if args.fine_snp:
+            fine.append('SNP')
+        if args.fine_mlst:
+            fine.append('MLST')
+        if args.fine_kwip:
+            fine.append('kWIP')
+        if args.fine_spoligo:
+            fine.append('spoligotyping')
+        if args.fine_cnv:
+            fine.append('CNV')
+        list_doc[line]['fine_clusterings'] = fine
+
+        if args.snp_thresh:
+            list_doc[line]['thresholds']['SNP'] = args.snp_thresh
+        if args.mlst_thresh:
+            list_doc[line]['thresholds']['MLST'] = args.snp_thresh
+        if args.kwip_thresh:
+            list_doc[line]['thresholds']['kWIP'] = args.snp_thresh
+        if args.spoligo_thresh:
+            list_doc[line]['thresholds']['spoligotyping'] = args.snp_thresh
+        if args.cnv_thresh:
+            list_doc[line]['thresholds']['CNV'] = args.snp_thresh
+
+        if args.less_constraints:
+            list_doc[line]['all_constraints'] = False
+        if args.method:
+            list_doc[line]['method'] = args.method
+        if args.no_presolve:
+            list_doc[line]['presolve'] = False
+        if args.visualize:
+            list_doc[line]['visualize'] = True
+
+with open("config.yaml", 'w') as f:
+    yaml.dump(list_doc, f)
+

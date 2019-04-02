@@ -1,0 +1,27 @@
+<tool id="run_all" name="PathOGiST - Run All" version="1.0.0">
+    <description>: Runs the entire PathOGiST pipeline</description>
+    <requirements>
+        <requirement type="package" version="0.3">pathogist</requirement>
+    </requirements>
+
+    <command><![CDATA[
+        PATHOGIST $config
+    ]]></command>
+
+    <inputs>
+        <param name="config" type="data" format="yaml" label="Config YAML"
+               help="Config YAML file for PathOGiST"/>
+    </inputs>
+
+    <outputs>
+        <data name="clustering" label="Consensus clustering on ${on_string}" format="tabular" from_work_dir="cc.tsv"/>
+    </outputs>
+
+    <help>
+
+    </help>
+
+    <citations>
+
+    </citations>
+</tool>

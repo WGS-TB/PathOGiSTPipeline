@@ -1,0 +1,5 @@
+tests/integration_tests/test3_data/spotyping_calls/SRR6152639
+tests/integration_tests/test3_data/spotyping_calls/SRR6152640
+tests/integration_tests/test3_data/spotyping_calls/SRR6152641
+tests/integration_tests/test3_data/spotyping_calls/SRR6152642
+tests/integration_tests/test3_data/spotyping_calls/SRR6152643
