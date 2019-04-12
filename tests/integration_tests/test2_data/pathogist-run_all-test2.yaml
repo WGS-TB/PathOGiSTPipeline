@@ -6,14 +6,14 @@
 # Directory to save temporary files.
 temp: tests/integration_tests/temp_dir
 # Number of threads on your computer
-threads: 2
+threads: 1
 # Select what tools to run: 1 to run and 0 to not run.
 run:
-  snippy: 0
-  kwip: 0
-  prince: 0
+  snippy: 1
+  kwip: 1
+  prince: 1
   spotyping: 1
-  mentalist: 0
+  mentalist: 1
 # Command line options for tools to genotype your raw reads
 genotyping:
   input_reads:
