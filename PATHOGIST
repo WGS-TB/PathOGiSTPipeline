@@ -625,6 +625,9 @@ def run_all(param, major, minor):
         # Determine whether to save temporary files, and which directory to do so
 
         temp_dir = config['temp'].rstrip('/')
+        # remove existing temp files
+        if os.path.isdir(temp_dir):
+            subprocess.call('rm -rf ' + temp_dir + '/*', shell=True)
         threads = config['threads']
         denovo_calls_dists_paths = {'calls': {}, 'distances': {}}
 
