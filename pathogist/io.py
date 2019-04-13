@@ -149,7 +149,8 @@ def read_cnv_calls(calls_path):
                         columns = line.rstrip().split('\t')
                     if "," in line:
                         columns = line.rstrip().split(',')
-                    sample = re.sub("_.*", "", columns[0])
+                    file =  columns[0].split('/')[-1]
+                    sample = re.sub("_.*", "", file)
                     calls[sample] = numpy.array(columns[1:],dtype=float)
     assert( len(set([len(calls[sample]) for sample in calls.keys()])) == 1 ), \
         "Samples do not have the same number of CNV calls."

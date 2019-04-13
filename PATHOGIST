@@ -13,6 +13,7 @@ import pkg_resources
 import shutil
 import yaml
 import urllib.request as urllib
+from multiprocessing import Process
 
 import pathogist
 import pathogist.cluster
@@ -21,6 +22,49 @@ import pathogist.distance
 import pathogist.visualize
 
 logger = logging.getLogger()
+
+def multi_process_spotyping(install_path, spotyping_options, spotyping_flags, accession, forward_reads, reverse_reads, temp_dir):
+
+    # Set up the spotyping command
+    spotyping_command = ['python', install_path +'/SpoTyping.py', 
+                         '--outdir', temp_dir, 
+                         '--output', '%s_spotyping.call' % accession,
+                        ] 
+
+    # Add the user specified options for the SpoTyping command
+    try:
+        for arg in spotyping_options:
+            spotyping_command.extend(['--%s' % arg, spotyping_options[arg]])
+    except:
+        pass
+    try:
+        for arg in spotyping_flags:
+            spotyping_command.append('--%s' % arg)
+    except:
+        pass
+    # Specify the path the to the forward reads of the sample for spotyping
+    if forward_reads[accession].endswith(".gz") == False:
+        spotyping_command.append(forward_reads[accession])
+        spotyping_command.append(reverse_reads[accession])
+    else:
+        subprocess.call(['cp', '-L', forward_reads[accession], temp_dir] )
+        subprocess.call(['cp', '-L', reverse_reads[accession], temp_dir] )
+        for_unzipped = forward_reads[accession].split('/')[-1].split('.gz')[0]
+        rev_unzipped = reverse_reads[accession].split('/')[-1].split('.gz')[0]
+        for_zipped = forward_reads[accession].split('/')[-1]
+        rev_zipped = reverse_reads[accession].split('/')[-1]
+        subprocess.call(['gunzip', '-f', temp_dir + '/' + for_zipped] )
+        subprocess.call(['gunzip', '-f', temp_dir + '/' + rev_zipped] )
+        spotyping_command.append(temp_dir + '/' + for_unzipped)        
+        spotyping_command.append(temp_dir + '/' + rev_unzipped)
+        logger.info(" Running SpoTyping on accession %s" % accession)
+        #print(spotyping_command)
+        #sys.exit(1)
+        subprocess.call(spotyping_command)
+        subprocess.call(['rm', temp_dir + '/' + for_unzipped] )
+        subprocess.call(['rm', temp_dir + '/' + rev_unzipped] )
+    logger.info(" Finished running SpoTyping on accession %s" % accession)
+
 
 def read_genotyping_calls(genotype,calls_path,clustering_args):
     read_calls_functions = {'SNP': pathogist.io.read_snp_calls,
@@ -285,7 +329,7 @@ def run_kwip(kwip_args,forward_reads_paths,reverse_reads_paths,threads,temp_dir)
     # Add the distance output path
     kwip_dist_path = '%s/kwip_dist.tsv' % temp_dir
     kwip_command.extend(['-d', kwip_dist_path])
-
+    kwip_command.extend(['-t', str(threads)])
     # Specify the paths to the khmer hashes to kwip
     for hash_path in hash_paths:
         kwip_command.append(hash_path)
@@ -305,6 +349,7 @@ def run_prince(prince_args,combined_reads_list_path,threads,temp_dir):
             prince_command.extend(['--%s' % arg, prince_options[arg]])
     except:
         pass
+    prince_command.extend(['-np', str(threads)])
     logger.info(" Finding CNVs using PRINCE...")
     subprocess.call(prince_command)
     logger.info(" Finished running PRINCE.")
@@ -314,7 +359,7 @@ def run_prince(prince_args,combined_reads_list_path,threads,temp_dir):
     f.close()
     return path_of_calls_path
 
-def run_spotyping(spotyping_args,forward_reads,reverse_reads,temp_dir):
+def run_spotyping(spotyping_args, forward_reads,reverse_reads, threads, temp_dir):
     accessions = set(forward_reads.keys()).union(reverse_reads.keys())
     spotyping_options = spotyping_args['options']
     #spotyping_path = spotyping_args['path']
@@ -325,45 +370,24 @@ def run_spotyping(spotyping_args,forward_reads,reverse_reads,temp_dir):
     spoligo_calls_paths = []
 
     logger.info(" Inferring spoligotyping using SpoTyping...")
+    procs = []
     for accession in accessions:
         calls_path = '%s/%s_spotyping.call' % (temp_dir,accession) 
         spoligo_calls_paths.append(calls_path)
 
-        # Set up the spotyping command
-        spotyping_command = ['python', install_path +'/SpoTyping.py', 
-                             '--outdir', temp_dir, 
-                             '--output', '%s_spotyping.call' % accession,
-                            ] 
+        # instantiating spotyping process 
 
-        # Add the user specified options for the SpoTyping command
-        try:
-            for arg in spotyping_options:
-                spotyping_command.extend(['--%s' % arg, spotyping_options[arg]])
-        except:
-            pass
-        try:
-            for arg in spotyping_flags:
-                spotyping_command.append('--%s' % arg)
-        except:
-            pass
-        # Specify the path the to the forward reads of the sample for spotyping
-        #spotyping_command.append(forward_reads[accession])
-        #spotyping_command.append(reverse_reads[accession])
-        subprocess.call(['cp', '-L', forward_reads[accession], temp_dir] )
-        subprocess.call(['cp', '-L', reverse_reads[accession], temp_dir] )
-        for_unzipped = forward_reads[accession].split('/')[-1].split('.gz')[0]
-        rev_unzipped = reverse_reads[accession].split('/')[-1].split('.gz')[0]
-        for_zipped = forward_reads[accession].split('/')[-1]
-        rev_zipped = reverse_reads[accession].split('/')[-1]
-        subprocess.call(['gunzip', '-f', temp_dir + '/' + for_zipped] )
-        subprocess.call(['gunzip', '-f', temp_dir + '/' + rev_zipped] )
-        spotyping_command.append(temp_dir + '/' + for_unzipped)		
-        spotyping_command.append(temp_dir + '/' + rev_unzipped)
-        logger.info(" Running SpoTyping on accession %s" % accession)
-        subprocess.call(spotyping_command)
-        subprocess.call(['rm', temp_dir + '/' + for_unzipped] )
-        subprocess.call(['rm', temp_dir + '/' + rev_unzipped] )
-        logger.info(" Finished running SpoTyping on accession %s" % accession)
+        proc = Process(target=multi_process_spotyping, args=(install_path, spotyping_options, spotyping_flags, accession, forward_reads, reverse_reads, temp_dir,))
+        procs.append(proc)
+        proc.start()
+        if len(procs) == threads:        
+        # complete the processes
+            for proc in procs:
+                proc.join()
+            procs = [] 
+    for proc in procs:
+        proc.join()
+    procs = []    
     logger.info(" Finished running SpoTyping.")
     return spoligo_calls_paths
 
@@ -455,6 +479,7 @@ def run_genotyping_tools(genotyping_args, run_args, threads, temp_dir):
         denovo_calls_paths['spoligotyping'] = run_spotyping(spotyping_args,
                                                             forward_reads_paths,
                                                             reverse_reads_paths,
+                                                            threads,
                                                             temp_dir)
 
     #sys.exit() #end to test
@@ -600,6 +625,9 @@ def run_all(param, major, minor):
         # Determine whether to save temporary files, and which directory to do so
 
         temp_dir = config['temp'].rstrip('/')
+        # remove existing temp files
+        if os.path.isdir(temp_dir):
+            subprocess.call('rm -rf ' + temp_dir + '/*', shell=True)
         threads = config['threads']
         denovo_calls_dists_paths = {'calls': {}, 'distances': {}}
 
