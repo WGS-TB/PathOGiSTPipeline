@@ -562,7 +562,7 @@ def call_clustering_commands(clustering_args,run_args,denovo_calls_dists_paths,t
     clusterings = {}
     for genotype in genotypes:
         logger.info(' Clustering samples based on %s data...' % genotype)
-        clustering = pathogist.cluster.correlation(distances[genotype],thresholds[genotype], all_constraints=all_constraints,method=method,presolve=presolve)     
+        clustering = pathogist.cluster.correlation(distances[genotype],thresholds[genotype], all_constraints=all_constraints,method=method)     
         clusterings[genotype] = clustering
         if temp_dir is not None:
             cluster_output_path = temp_dir + ("/%s_clustering.tsv" % genotype)
