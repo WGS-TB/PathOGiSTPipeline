@@ -12,8 +12,11 @@ import collections
 import pkg_resources
 import shutil
 import yaml
+import scipy
+import statsmodels.api as sm
 import urllib.request as urllib
 from multiprocessing import Process
+
 
 import pathogist
 import pathogist.cluster
@@ -561,6 +564,7 @@ def call_clustering_commands(clustering_args,run_args,denovo_calls_dists_paths,t
         distances[genotype] = distances[genotype].sort_index(axis=0).sort_index(axis=1)
     clusterings = {}
     for genotype in genotypes:
+
         logger.info(' Clustering samples based on %s data...' % genotype)
         clustering = pathogist.cluster.correlation(distances[genotype],thresholds[genotype], all_constraints=all_constraints,method=method)     
         clusterings[genotype] = clustering
@@ -597,7 +601,22 @@ def call_clustering_commands(clustering_args,run_args,denovo_calls_dists_paths,t
         pathogist.visualize.visualize_clusterings(summary_clustering,
                                                   output_prefix=visual_output_prefix,
                                                   mode='spring')
-
+        
+def get_first_local_minimum(distance_matrix, lowess_frac):
+    # get one distance between each sample
+    values = distance_matrix.values
+    lower_tri_values = values[numpy.tril_indices(len(distance_matrix.index), -1)]
+    # get the histogram of distances
+    # Doane's formula: https://en.wikipedia.org/wiki/Histogram#Doane's_formula
+    bin_counts, bin_edges = numpy.histogram(lower_tri_values, bins="doane")
+    # smooth the histogram with lowess regression
+    lowess = sm.nonparametric.lowess
+    smoothed_counts = lowess(list(bin_counts), list(bin_edges[:-1]), frac=lowess_frac, return_sorted=False)
+    #find peaks was the only function I could find that worked with flat regions so need to get the negative values
+    negative_smoothed_counts = [-count for count in smoothed_counts]
+    local_minima_indices = scipy.signal.find_peaks(negative_smoothed_counts)[0]
+    first_local_minimum = bin_edges[local_minima_indices[0]]
+    return first_local_minimum                                                      
 
 def run_all(param, major, minor):
     '''
@@ -644,6 +663,10 @@ def run_all(param, major, minor):
 def correlation(param):
     logger.info(" Opening distance matrix...")
     distance_matrix = pathogist.io.open_distance_file(param.distance_matrix)
+    if param.get_threshold:
+        first_local_minimum = get_first_local_minimum(distance_matrix, lowess_frac=0.1)
+        logger.info("Recommended Threshold: %.3f" % first_local_minimum)
+        return
     logger.debug("Creating and solving correlation clustering problem ... ")
     clustering = pathogist.cluster.correlation(distance_matrix,param.threshold,param.all_constraints,param.method)
     logger.debug("Outputting clustering...")
@@ -757,7 +780,7 @@ def visualize(param):
     elif param.data_type == 'clustering':
         logger.info(" Visualing clusterings...")
         summary_clustering = pathogist.io.open_clustering_file(param.input)
-        pathogist.visualize.visualize_clusterings(summary_clustering,mode='spring')
+        pathogist.visualize.visualize_clusterings(summary_clustering,mode='spring')    
 
 def main():
     MAJOR_VERSION = 0
@@ -784,13 +807,18 @@ def main():
     corr_parser = subparsers.add_parser(name='correlation', help="perform correlation clustering")
     corr_parser.add_argument("distance_matrix", type=str,
                              help="path to the distance matrix file")
-    corr_parser.add_argument("threshold", type=float,help="threshold value for correlation")
-    corr_parser.add_argument("output_path", type=str, help="path to write cluster output tsv file")
+    corr_parser.add_argument("threshold", type=float,
+                                help="threshold value for correlation")
+    corr_parser.add_argument("output_path", type=str,
+                                help="path to write cluster output tsv file")
     corr_parser.add_argument("-a", "--all_constraints", action="store_true", default=False,
                              help = "add all constraints to the optimization problem, "
                                   + "not just those with mixed signs.")
     corr_parser.add_argument("-m","--method",type=str,choices=['C4','ILP'],default='C4',
                              help="Method for correlation clustering")
+                             
+    corr_parser.add_argument("-gt","--get_threshold", action="store_true", default=False,
+                            help="get a recommend threshold value for the given distance matrix")                       
 
     ''' legacy
     corr_parser.add_argument("-p","--presolve", action="store_true", default=False, 
