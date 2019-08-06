@@ -599,7 +599,7 @@ def call_clustering_commands(clustering_args,run_args,denovo_calls_dists_paths,t
                                                   mode='spring')
 
 
-def run_all(param, major, minor):
+def run_all(param, major, minor, patch):
     '''
     Run the entire PathOGiST pipeline from genotyping to consensus clustering, or create
     a new configuration file.
@@ -610,8 +610,8 @@ def run_all(param, major, minor):
             src_path = pkg_resources.resource_filename(__name__,'pathogist/resources/blank_config.yaml')
             shutil.copyfile(src_path,param.config)
         except IOError:
-            urllib.urlretrieve("https://github.com/WGS-TB/PathOGiST/releases/download/v{0}.{1}/blank_config.yaml"
-                               .format(major, minor), param.config)
+            urllib.urlretrieve("https://github.com/WGS-TB/PathOGiST/releases/download/v{0}.{1}.{2}/blank_config.yaml"
+                               .format(major, minor, patch), param.config)
         print("New configuration file written at %s" % param.config)
     else:
         with open(param.config,'r') as config_stream:
@@ -762,10 +762,11 @@ def visualize(param):
 def main():
     MAJOR_VERSION = 0
     MINOR_VERSION = 3
+    PATH_VERSION = 4
 
-    parser = argparse.ArgumentParser(description=('PathOGiST Version %d.%d\n' +
+    parser = argparse.ArgumentParser(description=('PathOGiST Version %d.%d.%d\n' +
                     'Copyright (C) 2018 Leonid Chindelevitch, Cedric Chauve, William Hsiao')
-                    % (MAJOR_VERSION, MINOR_VERSION), formatter_class=argparse.RawTextHelpFormatter)
+                    % (MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION), formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-ll', '--loglevel', type=str, default="INFO",
                         choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],
                         help='Set the logging level')
@@ -848,7 +849,7 @@ def main():
                         datefmt='%I:%M:%S %p')
 
     if param.subcommand == 'run':
-        run_all(param, MAJOR_VERSION, MINOR_VERSION)
+        run_all(param, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
     elif param.subcommand == 'correlation':
         correlation(param)
     elif param.subcommand == 'consensus':
