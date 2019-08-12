@@ -1,8 +1,8 @@
 # PathOGiST
-
 ## Build Status
 [![Build Status](https://travis-ci.org/WGS-TB/PathOGiST.svg?branch=master)](https://travis-ci.org/WGS-TB/PathOGiST)
 
+<!---
 ## Bugfixing Protocol
 1. Raise Github issue
 2. Fix the issue
@@ -15,7 +15,7 @@
   - [x] Add a license (e.g. MIT)
   - [ ] In each package file, add a header with copyright information
 - [ ] Documentation
-
+--->
 
 ## Installation
 *Note*: PathOGiST is currently not compatible with OSX
