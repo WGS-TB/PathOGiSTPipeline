@@ -1,20 +1,96 @@
 <tool id="concatenator" name="Concatenator" version="1.0.0">
     <description>creates a list of accessions and the associated path to their variant calls</description>
     <requirements>
-        <requirement type="package" version="0.0.1">pathogist</requirement>
+        <requirement type="package" version="0.3">pathogist</requirement>
     </requirements>
 
     <command><![CDATA[
-        $__tool_directory__/concatenator -n #for $path in $paths# ${path.element_identifier} #end for#
-        -i #for $path in $paths# $path #end for#
+        $__tool_directory__/concatenator
+
+        #if $input_type.input_type_selector == "variant"
+            variant
+            -n #for $path in $input_type.paths# ${path.element_identifier} #end for#
+            -i #for $path in $input_type.paths# $path #end for#
+        #elif $input_type.input_type_selector == "clustering"
+            cluster
+            #if $input_type.mlst.mlst_checkbox
+                --mlst $input_type.mlst.mlst_path
+            #end if
+            #if $input_type.snp.snp_checkbox
+                --snp $input_type.snp.snp_path
+            #end if
+            #if $input_type.cnv.cnv_checkbox
+                --cnv $input_type.cnv.cnv_path
+            #end if
+            #if $input_type.spoligo.spoligo_checkbox
+                --spoligo $input_type.spoligo.spoligo_path
+            #end if
+         #elif $input_type.input_type_selector == "reads"
+            reads
+            $input_type.fastq.forward
+            $input_type.fastq.reverse
+         #end if
     ]]></command>
 
+
     <inputs>
-        <param name="paths" type="data" label="Collection of calls" help="" optional="False" multiple="True"/>
+        <conditional name="input_type">
+            <param name="input_type_selector" type="select" label="Concatenation of variant calls, or clustering files">
+                <option value="variant">Variant Call Files</option>
+                <option value="clustering">Clustering/Distance Matrix Files</option>
+                <option value="reads">Raw reads</option>
+            </param>
+            <when value="variant">
+                <param name="paths" type="data" label="Collection of calls" help="" optional="False" multiple="True"/>
+            </when>
+            <when value="clustering">
+                <conditional name="mlst">
+                    <param name="mlst_checkbox" type="boolean" label="Include MLST"/>
+                    <when value="true">
+                        <param name="mlst_path" type="data" label="MLST Clustering/Distance Matrix file"
+                               format="txt,tabular"/>
+                    </when>
+                </conditional>
+                <conditional name="snp">
+                    <param name="snp_checkbox" type="boolean" label="Include SNP"/>
+                    <when value="true">
+                        <param name="snp_path" type="data" label="SNP Clustering/Distance Matrix file"
+                               format="txt,tabular"/>
+                    </when>
+                </conditional>
+                <conditional name="cnv">
+                    <param name="cnv_checkbox" type="boolean" label="Include CNV"/>
+                    <when value="true">
+                        <param name="cnv_path" type="data" label="CNV Clustering/Distance Matrix file"
+                               format="txt,tabular"/>
+                    </when>
+                </conditional>
+                <conditional name="spoligo">
+                    <param name="spoligo_checkbox" type="boolean" label="Include Spoligotyping"/>
+                    <when value="true">
+                        <param name="spoligo_path" type="data" label="Spoligotyping Clustering/Distance Matrix file"
+                               format="txt,tabular"/>
+                    </when>
+                </conditional>
+            </when>
+            <when value="reads">
+                <param name="fastq" type="data_collection" collection_type="paired"
+                       format="fastqsanger,fastq,fastq.gz,fastqsanger.gz" label="Select paired collection"/>
+            </when>
+        </conditional>
     </inputs>
 
     <outputs>
-        <data name="output" label="Paths of ${on_string}" format="txt" from_work_dir="paths.txt"/>
+        <data name="output" label="Paths of ${on_string}" format="txt" from_work_dir="paths.txt">
+            <filter>input_type[input_type_selector] == 'variant'
+                or input_type[input_type_selector] == 'clustering'</filter>
+        </data>
+        <data name="forward" label="Paths of ${on_string} (forward reads)" format="txt" from_work_dir="forward.txt">
+            <filter>input_type[input_type_selector] == 'reads'</filter>
+        </data>
+        <data name="reverse" label="Paths of ${on_string} (reverse reads)" format="txt" from_work_dir="reverse.txt">
+            <filter>input_type[input_type_selector] == 'reads'</filter>
+        </data>
     </outputs>
 
     <help>

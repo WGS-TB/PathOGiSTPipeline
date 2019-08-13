@@ -6,16 +6,48 @@ import argparse as ap
 parser = ap.ArgumentParser(prog='concatenater', conflict_handler='resolve',
                            description="Concatenates all accessions and their associated paths")
 
-input = parser.add_argument_group('Input', '')
-input.add_argument('-n', '--name', nargs='+', required=True, help="Sample name (accessions)")
-input.add_argument('-i', '--input', nargs='+', required=True, help="Paths to calls")
+subparser = parser.add_subparsers(dest='subcommand')
+
+variant_parser = subparser.add_parser(name='variant', help="Concatenate variant call files")
+variant_parser.add_argument('-n', '--name', nargs='+', required=True, help="Sample name (accessions)")
+variant_parser.add_argument('-i', '--input', nargs='+', required=True, help="Paths to calls")
+
+cluster_parser = subparser.add_parser('cluster')
+cluster_parser.add_argument('--mlst', metavar="MLST", type=str, help="MLST clusters/distance matrix")
+cluster_parser.add_argument('--snp', metavar="SNP", type=str, help="SNP clusters/distance matrix")
+cluster_parser.add_argument('--cnv', metavar="CNV", type=str, help="CNV clusters/distance matrix")
+cluster_parser.add_argument('--spoligo', metavar="SPOLIGO", type=str, help="Spoligotyping clusters/distance matrix")
+cluster_parser.add_argument('--kwip', metavar="KWIP", type=str, help="Kwip clusters/distance matrix")
+
+reads_parser = subparser.add_parser('reads')
+reads_parser.add_argument('forward', help="Forward reads")
+reads_parser.add_argument('reverse', help="Reverse reads")
 
 if len(sys.argv) == 1:
     parser.print_usage()
     sys.exit(1)
 
 args = parser.parse_args()
-output = open('paths.txt', 'w')
 
-for index,path in enumerate(args.input):
-    output.write("%s=%s\n" % (args.name[index], path))
+if args.subcommand == 'variant':
+    output = open('paths.txt', 'w')
+    for index,path in enumerate(args.input):
+        output.write("%s=%s\n" % (args.name[index], path))
+    output.close()
+
+elif args.subcommand == 'cluster':
+    output = open('paths.txt', 'w')
+    variant_types = [(args.mlst, 'MLST'), (args.snp, 'SNP'), (args.cnv, 'CNV'), (args.spoligo, 'spoligotyping'),
+                     (args.kwip, 'kWIP')]
+    for variant in variant_types:
+        if variant[0] == None:
+            continue
+        else:
+            output.write("%s=%s\n" % (variant[1], variant[0]))
+    output.close()
+
+elif args.subcommand == 'reads':
+    with open('forward.txt', 'a') as f_out:
+        f_out.write(args.forward)
+    with open('reverse.txt', 'a') as r_out:
+        r_out.write(args.reverse)

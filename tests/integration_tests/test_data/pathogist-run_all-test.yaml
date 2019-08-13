@@ -2,34 +2,166 @@
 # PathOGiST configuration file.
 # This configuration file is in YAML file format, release 1.2 (Third Edition).
 # Google yaml for the specification.
+
+# Directory to save temporary files.
+temp: tests/integration_tests/temp_dir
+# Number of threads on your computer
+threads: 1
+# Select what tools to run: 1 to run and 0 to not run.
+run:
+  snippy: 0
+  kwip: 0
+  prince: 0
+  spotyping: 0
+  mentalist: 0
+# Command line options for tools to genotype your raw reads
+genotyping:
+  input_reads:
+    forward_reads: #tests/integration_tests/test_data/dummy.txt
+    reverse_reads: #tests/integration_tests/test_data/dummy.txt
+  mentalist:
+    # Choose 1 of the following option for mentalist to obtain a mlst database by selecting 1 and 0 for the others
+    db_loc:
+      local_file: 1
+      build_db: 0
+      download_pubmlst: 0
+      download_cgmlst: 0
+      download_enterobase: 0
+    local_file:
+      database: /projects/pathogist/cgMLST/MTB/Jan2019/mtb_31_Jan2019.db
+    build_db:
+      options:
+        ## kmer size
+        k:
+        ## FASTA files with the MLST scheme
+        fasta_files:
+        ## profile file for known genotypes
+        profile:
+    download_pubmlst:
+      options:
+        ## Kmer size
+        k:
+        ## Species name or scheme ID
+        scheme:
+    download_cgmlst:
+      options:
+        ## Kmer size
+        k:
+        ## Species name or scheme ID
+        scheme:
+    download_enterobase:
+      options:
+        ## Kmer size
+        k:
+        ## Letter identifying which scheme: 
+        ## (S)almonella, (Y)ersinia, or (E)scherichia/Shigella
+        scheme:
+        ## Choose the type: 'cg' or 'wg' for cgMLST or wgMLST, respectively.
+        type:
+    call:
+      options:
+        ## Maximum number of mutations when looking for novel alleles 
+        mutation_threshold: 6
+        ## Minimum number of times a kmer is seen to be considered present in the sample 
+        ## (solid)
+        kt: 10
+      flags:
+        ## Outputs the results for the original voting algorithm. 
+        #- output_votes
+        ## Outputs a FASTA file with the alleles from 'special cases' such as incomplete 
+        ## coverage, novel, and multiple alleles. 
+        #- output_special
+  kwip:
+    kwip_path: tests/integration_tests/test_data/dummy.txt
+    khmer_options:
+      N: 1
+      x: 1e9
+      # k-mer size to use
+      ksize: 31
+      # approximate number of unique kmers in the input set
+      unique-kmers: 0
+    kwip_options:
+      #weights:
+    kwip_flags:
+      #- unweighted
+      #- calc_weights
+  prince:
+    options:
+      # VNTR templates. Default is for M.TB
+      #templates:
+  snippy:
+    options:
+      # Reference genome. Supports FASTA, GenBank, EMBL (not GFF)
+      reference: tests/integration_tests/test_data/dummy.txt
+      # Minimum read mapping quality to consider
+      mapqual: 60
+      # Minimum base quality to consider
+      basequal: 20
+      # Minimum coverage of variant site
+      mincov: 10
+      # Minimum proportion for variant evidence
+      minfrac: 0.9
+      # Use this @RG ID: in the bam header
+      #rgid:
+      # Extra BWA MEM options, e.g. -x pacbio
+      #bwaopt:
+    flags:
+      ## Keep unmapped reads in BAM and write FASTQ.
+      #- unmapped
+  spotyping:
+    # Path to SpoTyping.py file
+    path: tests/integration_tests/test_data/dummy.txt
+    options:
+      #swift: on
+      #min: 5
+      #rmin: 6
+      #outdir: ./
+      #output: SpoTyping
+    flags:
+      #- seq
+      #- noQuery
+      #- filter
+      #- sorted
 # Do not remove the sections 'genotyping', 'distances', 'thresholds', 'all_constraints', or 'output'.
-# Remove all key-value pairs in the sections 'genotyping' or 'distances' if you want them blank.
+# Remove all key-value pairs in the sections 'calls' or 'distances' if you want them blank.
 # Remove all list items in the section 'fine_clusterings' if you want that blank, too.
 # Keys from 'genotyping' and 'distances' sections should not overlap.
-genotyping: 
-    # Raw genotyping data from which to create distance matrices.
-    # Accepted values are paths to text files containing paths to genotyping files.
-    # Currently only compatible with SNPs from snippy, MLSTs from MentaLiST, and CNVs from PRINCE. 
+clustering:
+  # Output prefix for final consensus clustering and visualization
+  output_prefix: tests/integration_tests/test_data/yersinia_final_clustering
+  # Raw genotyping data from which to create distance matrices.
+  # Accepted values are paths to text files containing paths to genotyping files.
+  # Currently only compatible with SNPs from snippy, MLSTs from MentaLiST, and CNVs from PRINCE
+  genotyping: 
     MLST: tests/integration_tests/test_data/yersinia_mentalist_calls.txt
-distances:
-    # Paths to pre-constructed distance matrices in tsv format.
-    # You can also specify SNP, MLST and CNV distance matrices here if you pre-constructed them,
-    # but then they shouldn't appear in the section 'genotyping'.
-    SNP: tests/integration_tests/test_data/yersinia_snp_dist.tsv   
+    CNV:
+    spoligotyping:
+  # Bed file to filter snps before distance matrix generation( applies to both existing or newly generated snp calls).
+  genotyping_options:
+    bed_filter:
+  # Paths to pre-constructed distance matrices in tsv format.
+  # You can also specify SNP, MLST, spoligotypoing and CNV distance matrices here if you 
+  # pre-constructed them, but then they shouldn't appear in the section 'genotyping'.
+  distances:
+    SNP: tests/integration_tests/test_data/yersinia_snp_dist.tsv
     kWIP: tests/integration_tests/test_data/yersinia_kwip_dist.tsv
-fine_clusterings:
-    # The genotyping datatypes that are considered to be the "finest".
+  # The genotyping datatypes that are considered to be the "finest".
+  fine_clusterings:
     - SNP
-thresholds:
-    # Threshold values for performing correlation clustering on genotyping data types given above.
-    # Every key appearing in the sections 'genotyping' and 'distances' should appear here with a value. 
-    SNP: 2500 
-    MLST: 300
+  # Threshold values for performing correlation clustering on genotyping data types given above
+  # Every key appearing in the sections 'genotyping' and 'distances' should appear 
+  # here with a value. 
+  thresholds:
+    SNP: 2500
+    CNV: 100
     kWIP: 0.4
-# Put the path for the final consensus clustering in tsv format here.
-output: tests/integration_tests/test_data/yersinia_final_clustering.tsv
-# Use all constraints when performing correlation and consensus clustering
-all_constraints: False
-solver: pulp
-temp: tests/integration_tests/temp_dir
+    MLST: 300
+    spoligotyping: 8
+  # Use all constraints when performing correlation and consensus clustering
+  all_constraints: True
+  # Method to use for the clustering algorithm; choices are `C4` or `ILP`
+  method: C4
+  presolve: True
+  # Visualize Clusters; choices are `True` or `False`
+  visualize: False
 ...

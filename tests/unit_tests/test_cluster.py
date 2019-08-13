@@ -32,7 +32,7 @@ class ClusterTest(unittest.TestCase):
     def test_correlation(self):
         true_clustering_path = 'tests/unit_tests/test_data/cluster/yersinia_true_clustering.tsv'
         true_clustering = pathogist.io.open_clustering_file(true_clustering_path)
-        clustering = pathogist.cluster.correlation(self.mlst_dist,500)
+        clustering = pathogist.cluster.c4_correlation(self.mlst_dist,500)
         samples = list(clustering.index.values)
         self.assertEqual(pathogist.cluster.adjusted_rand_index(clustering.loc[samples],
                                                                true_clustering.loc[samples]),1)

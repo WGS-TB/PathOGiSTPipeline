@@ -1,0 +1,242 @@
+<tool id="config_builder" name="PathOGiST - Config Builder" version="1.0.0">
+    <description>: Creates and populates the config file to run PathOGiST</description>
+    <requirements>
+        <requirement type="package" version="0.3">pathogist</requirement>
+    </requirements>
+
+    <command><![CDATA[
+        $__tool_directory__/config_builder
+
+        #if $snippy.snippy_checkbox
+            --snippy
+            --reference $snippy.reference
+            #if $snippy.snippy_adv.snippy_adv_checkbox
+                --mapqual $snippy.snippy_adv.mapqual
+                --basequal $snippy.snippy_adv.basequal
+                --mincov $snippy.snippy_adv.mincov
+                --minfrac $snippy.snippy_adv.minfrac
+            #end if
+            $snippy.snp_fine
+            --snp_thresh $snippy.snp_threshold
+        #end if
+
+        #if $mentalist.mentalist_checkbox
+            --mentalist
+            #if $mentalist.db_loc.db_selector == "local_file"
+                --local_file
+                --local_db $mentalist.db_loc.mlst_database
+            #end if
+            #if $mentalist.db_loc.db_selector == "build_db"
+                --build_db
+                --kmer $mentalist.db_loc.k
+                --fasta_files $mentalist.db_loc.fasta_files
+                --profile $mentalist.db_loc.profile
+            #end if
+            #if $mentalist.db_loc.db_selector == "download_pubmlst"
+                --download_pubmlst
+                --kmer $mentalist.db_loc.k
+                --scheme $mentalist.db_loc.scheme
+            #end if
+            #if $mentalist.db_loc.db_selector == "download_cgmlst"
+                --download_cgmlst
+                --kmer $mentalist.db_loc.k
+                --scheme $mentalist.db_loc.scheme
+            #end if
+            #if $mentalist.db_loc.db_selector == "download_enterobase"
+                --download_enterobase $mentalist.db_loc.k
+                --entero_scheme $mentalist.db_loc.scheme
+                --entero_type $mentalist.db_loc.type
+            #end if
+            #if $mentalist.mentalist_adv.mentalist_adv_checkbox
+                --mutation_threshold $mentalist.mentalist_adv.mutation_thresh
+                --kt $mentalist.mentalist_adv.kt
+            #end if
+            $mentalist.mlst_fine
+            --mlst_thresh $mentalist.mlst_threshold
+        #end if
+
+        #if $prince.prince_checkbox
+            --prince
+            $prince.cnv_fine
+            --cnv_thresh $prince.cnv_threshold
+        #end if
+
+        #if $kwip.kwip_checkbox
+            --kwip
+            #if $kwip.kwip_adv.kwip_adv_checkbox
+                --N $kwip.kwip_adv.N
+                --x $kwip.kwip_adv.x
+                --ksize $kwip.kwip_adv.ksize
+                --unique_kmers $kwip.kwip_adv.unique_kmers
+            #end if
+            $kwip.kwip_fine
+            --kwip_thresh $kwip.kwip_threshold
+        #end if
+
+        #if $spotyping.spotyping_checkbox
+            --spotyping
+            $spotyping.spoligo_fine
+            --spoligo_thresh $spotyping.spoligo_threshold
+        #end if
+
+        #if $adv_clustering.adv_clustering_checkbox
+            $adv_clustering.all_constraints
+            --method $adv_clustering.method
+            $adv_clustering.presolve
+            $adv_clustering.visualize
+        #end if
+
+        $forward
+        $reverse
+        cc
+    ]]></command>
+
+
+    <inputs>
+        <param name="forward" type="data" format="txt,tabular" label="List of forward reads"/>
+        <param name="reverse" type="data" format="txt,tabular" label="List of reverse reads"/>
+
+        <conditional name="snippy">
+            <param name="snippy_checkbox" type="boolean" label="Run Snippy"/>
+            <when value="true">
+                <param name="reference" type="data" format="fasta,fa,fasta.gz,fa.gz" label="Reference Genome"/>
+                <conditional name="snippy_adv">
+                    <param name="snippy_adv_checkbox" type="boolean" label="Advanced Snippy Parameters"/>
+                    <when value="true">
+                        <param name="mapqual" type="integer" value="60" min="0" label="Minimum read mapping
+                        quality to consider"/>
+                        <param name="basequal" type="integer" value="20" min="0" label="Minimum base quality
+                        to consider"/>
+                        <param name="mincov" type="integer" value="10" min="0" label="Minimum coverage of
+                        variant site"/>
+                        <param name="minfrac" type="float" value="0.9" min="0" label="Minimum proportion of
+                        variant evidence"/>
+                    </when>
+                </conditional>
+                <param name="snp_fine" type="boolean" checked="true" falsevalue="" truevalue="--fine_snp"
+                       label="Consider SNP as a fine datatype"/>
+                <param name="snp_threshold" type="integer" value="2500" min="0"
+                       label="Correlation clustering threshold for MLST"/>
+            </when>
+        </conditional>
+
+        <conditional name="mentalist">
+            <param name="mentalist_checkbox" type="boolean" label="Run MentaLiST"/>
+            <when value="true">
+                <conditional name="db_loc">
+                    <param name="db_selector" type="select" label="Option for obtaining MLST database">
+                        <option value="local_file">Local File</option>
+                        <option value="build_db">Build DB</option>
+                        <option value="download_pubmlst">Download PubMLST Scheme</option>
+                        <option value="download_cgmlst">Download cgMLST Scheme</option>
+                        <option value="download_enterobase">Download Enterobase Scheme</option>
+                    </param>
+                    <when value="local_file">
+                        <param name="mlst_database" format="db" type="data" label="MLST database file"/>
+                    </when>
+                    <when value="build_db">
+                        <param name="k" type="integer" value="31" min="1" label="kmer size"/>
+                        <param name="fasta_files" type="data" format="txt,tabular" label="List of FASTA files"/>
+                        <param name="profile" type="data" format="txt" label="Profile file for known
+                        genotypes"/>
+                    </when>
+                    <when value="download_pubmlst">
+                        <param name="k" type="integer" value="31" min="1" label="kmer size"/>
+                        <param name="scheme" type="text" label="Species name or scheme ID"/>
+                    </when>
+                    <when value="download_cgmlst">
+                        <param name="k" type="integer" value="31" min="1" label="kmer size"/>
+                        <param name="scheme" type="text" label="Species name or scheme ID"/>
+                    </when>
+                    <when value="download_enterobase">
+                        <param name="k" type="integer" value="31" min="1" label="kmer size"/>
+                        <param name="scheme" type="text" label="(S)almonella, (Y)ersinia, or
+                        (E)scherichia/Shigella"/>
+                        <param name="type" type="text" label="'cg' or 'wg' for cgMLST or wgMLST, respectively"/>
+                    </when>
+                </conditional>
+
+                <conditional name="mentalist_adv">
+                    <param name="mentalist_adv_checkbox" type="boolean" label="Advanced MentaLiST Parameters"/>
+                    <when value="true">
+                        <param name="mutation_thresh" type="integer" min="1" value="6" label="Maximum number of
+                        mutations when looking for novel alleles"/>
+                        <param name="kt" type="integer" value="10" min="1" label="Minimum number of times a
+                        kmer is seen to be considered present in the sample"/>
+                    </when>
+                </conditional>
+                <param name="mlst_fine" type="boolean" checked="false" falsevalue="" truevalue="--fine_mlst"
+                       label="Consider MLST as a fine datatype"/>
+                <param name="mlst_threshold" type="integer" value="300" min="0"
+                       label="Correlation clustering threshold for MLST"/>
+            </when>
+        </conditional>
+
+        <conditional name="prince">
+            <param name="prince_checkbox" type="boolean" label="Run PRINCE"/>
+            <when value="true">
+                <param name="cnv_fine" type="boolean" checked="false" falsevalue="" truevalue="--fine_cnv"
+                       label="Consider CNV as a fine datatype"/>
+                <param name="cnv_threshold" type="integer" value="100" min="0"
+                       label="Correlation clustering threshold for CNV"/>
+            </when>
+        </conditional>
+
+        <conditional name="kwip">
+            <param name="kwip_checkbox" type="boolean" label="Run kWIP"/>
+            <when value="true">
+                <conditional name="kwip_adv">
+                    <param name="kwip_adv_checkbox" type="boolean" label="Advanced kWIP Parameters"/>
+                    <when value="true">
+                        <param name="N" type="integer" value="1" min="1" label="Number of tables"/>
+                        <param name="x" type="float" value="1e9" min="1" label="Maximum table size"/>
+                        <param name="ksize" type="integer" value="31" min="1" label="kmer size"/>
+                        <param name="unique_kmers" type="integer" value="0" min="0" label="Approximate number
+                        of unique kmers in the input set"/>
+                    </when>
+                </conditional>
+                <param name="kwip_fine" type="boolean" checked="false" falsevalue="" truevalue="--fine_kwip"
+                       label="Consider kWIP as a fine datatype"/>
+                <param name="kwip_threshold" type="float" value="0.4" min="0"
+                       label="Correlation clustering threshold for kWIP"/>
+            </when>
+        </conditional>
+
+        <conditional name="spotyping">
+            <param name="spotyping_checkbox" type="boolean" label="Run SpoTyping"/>
+            <when value="true">
+                <param name="spoligo_fine" type="boolean" checked="false" falsevalue="" truevalue="--fine_spoligo"
+                       label="Consider spoligotype as a fine datatype"/>
+                <param name="spoligo_threshold" type="integer" value="8" min="0"
+                       label="Correlation clustering threshold for Spoligotyping"/>
+            </when>
+        </conditional>
+
+        <conditional name="adv_clustering">
+            <param name="adv_clustering_checkbox" type="boolean"
+                   label="Advanced settings for correlation and consensus clustering"/>
+            <when value="true">
+                <param name="all_constraints" type="boolean" checked="true" falsevalue="--less_constraints"
+                       truevalue="" label="Use all constraints when performing clustering"/>
+                <param name="method" type="text" value="C4" size="3"
+                       label="`C4` or `ILP` method for clustering algorithm"/>
+                <param name="presolve" type="boolean" checked="true" falsevalue="--no_presolve" truevalue=""
+                       label="Perform presolving for clustering"/>
+                <param name="visualize" type="boolean" checked="false" falsevalue="" truevalue="--visualize"
+                       label="Visualize clusters"/>
+            </when>
+        </conditional>
+    </inputs>
+
+    <outputs>
+        <data name="output" label="PathOGiST Config File" format="yaml" from_work_dir="config.yaml"/>
+    </outputs>
+
+    <help>
+
+    </help>
+
+    <citations>
+
+    </citations>
+</tool>

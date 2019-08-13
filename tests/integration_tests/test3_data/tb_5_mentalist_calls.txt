@@ -1,0 +1,5 @@
+tests/integration_tests/test3_data/mentalist_calls/SRR6152639.class
+tests/integration_tests/test3_data/mentalist_calls/SRR6152640.class
+tests/integration_tests/test3_data/mentalist_calls/SRR6152641.class
+tests/integration_tests/test3_data/mentalist_calls/SRR6152642.class
+tests/integration_tests/test3_data/mentalist_calls/SRR6152643.class

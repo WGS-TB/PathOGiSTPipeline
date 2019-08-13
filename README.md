@@ -1,94 +1,52 @@
 # PathOGiST
-
 ## Build Status
 [![Build Status](https://travis-ci.org/WGS-TB/PathOGiST.svg?branch=master)](https://travis-ci.org/WGS-TB/PathOGiST)
+
+<!---
+## Bugfixing Protocol
+1. Raise Github issue
+2. Fix the issue
+3. Create new unit tests 
+4. Run unit tests
+5. Close issue
 
 ## Tasks
 - [ ] Lawyering up
   - [x] Add a license (e.g. MIT)
   - [ ] In each package file, add a header with copyright information
 - [ ] Documentation
+--->
 
-## Dependencies
-Do the following commands:
-* `pip install -r requirements.txt`.
-* `apt install coinor-cbc`
- 
 ## Installation
-You can `PATHOGIST` directly from this repo as long as you have the dependencies installed.
-We recommend you create a conda environment for PathOGiST, though, and install PathOGiST through conda.
-First, add the Anaconda channel `ibmdecisionoptimization` to your conda config like so:
+*Note*: PathOGiST is currently not compatible with OSX
+
+We recommend you create a conda environment for PathOGiST, and install PathOGiST through conda.
+First set up Bioconda as per the instructions [here](https://bioconda.github.io/).
+PathOGiST requires Python 3.5 or newer:
 ```bash
-conda config --add channels ibmdecisionoptimization
+conda create --name pathogist 
 ```
-PathOGiSt requires Python 3.5, so create a conda environment with the right python version:
+And then activate the environment and install PathOGiST:
 ```bash
-conda create --name pathogist python=3.5
-```
-And then install PathOGiST:
-```bash
-conda install -c seanla pathogist
+source activate pathogist
+conda install pathogist
 ```
 When inside the `pathogist` conda environment, you can then simply run `PATHOGIST -h`, for example.
 Note that you will need to install CPLEX separately, as CPLEX is proprietary software.
 
 ## Subcommands
 
-### Entire Pipeline (`PATHOGIST all`)
+### Entire Pipeline (`PATHOGIST run`)
 This subcommand runs the PathOGiST pipeline from start to finish 
 (i.e. distance matrix creation -> correlation clustering -> consensus clustering).
 
 The main input file is a YAML configuration file, which you can create with the command
 ```bash
-PATHOGIST all [path to where you want your config] --new_config
+PATHOGIST run [path to where you want your config] --new_config
 ```
-The configuration file will look like so:
-```bash
----
-# PathOGiST configuration file.
-# This configuration file is in YAML file format, release 1.2 (Third Edition).
-# Google yaml for the specification.
-# Do not remove the sections 'genotyping', 'distances', 'thresholds', 'all_constraints', or 'output'.
-# Remove all key-value pairs in the sections 'genotyping' or 'distances' if you want them blank.
-# Remove all list items in the section 'fine_clusterings' if you want that blank, too.
-# Keys from 'genotyping' and 'distances' sections should not overlap.
-genotyping:
-    # Raw genotyping data from which to create distance matrices.
-    # Accepted values are paths to text files containing paths to call files.
-    # Currently only compatible with SNPs from snippy, MLSTs from MentaLiST, and CNVs from PRINCE.
-    # Example:
-    # MLST: /path/to/mlst_calls.txt
-    SNP:
-    MLST:
-    CNV:
-distances:
-    # Paths to pre-constructed distance matrices in tsv format.
-    # You can also specify SNP, MLST and CNV distance matrices here if you pre-constructed them,
-    # but then they shouldn't appear in the section 'genotyping'.
-    kmer:
-    spoligotyping:
-fine_clusterings:
-    # The genotyping datatypes that are considered to be the "finest".
-    - MLST
-    - SNP
-    - kmer
-thresholds:
-    # Threshold values for performing correlation clustering on genotyping data types given above.
-    # Every key appearing in the sections 'genotyping' and 'distances' should appear here with a value. 
-    SNP:
-    MLST:
-    CNV:
-    kmer:
-    spoligotyping:
-# Put the path for the final output consensus clustering (which will be in tsv format) here.
-output:
-# Use all constraints when performing correlation and consensus clustering
-all_constraints: False
-# Solver to use for the clustering algorithm; choices are `pulp` or `cplex`
-solver: pulp
-...
-```
-Modify the configuration by adding the paths to your input files.
+The configuration file will look like [this](pathogist/resources/blank_config.yaml).
+
+Modify the configuration by adding paths to files, changing parameters, etc.
 You can add your own keys to the YAML configuration file, and delete the default keys which aren't relevant to your experiment.
 
 The inputs to the `genotyping` entries should be a file which contains absolute paths to your call files.
