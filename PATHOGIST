@@ -190,7 +190,7 @@ def install_mentalist():
     #pkg = '[ "Distributed", "ArgParse", "BioSequences", "JSON", "DataStructures", "JLD", "GZip", "Blosc", "FileIO", "TextWrap", "LightXML"]'
     #julia_command = julia_dir + '/julia-1.1.0/bin/julia'+' -e \'import Pkg; Pkg.add("%s")\'' % (pkg)
     #subprocess.call(julia_command, shell=True)
-    if os.path.isfile(julia_dir + '/MentaLiST-65451e75e5cfd168c23989a0ef50fcf545cc8e57/src/MentaLiST.jl') == False:
+    if os.path.isfile(julia_dir + '/MentaLiST-65451e7/src/MentaLiST.jl') == False:
         subprocess.call(['wget', '-q', '-x', '-P', julia_dir, 
             'https://github.com/WGS-TB/MentaLiST/archive/65451e7.zip'])
         subprocess.call(['unzip', 
@@ -212,7 +212,7 @@ def run_mentalist(mentalist_args,forward_reads_paths,reverse_reads_paths,threads
         if mentalist_args['db_loc'][subcmd] == 1:
             subcmd_options = mentalist_args[subcmd]['options']
             mentalist_command = [julia_dir + '/julia-1.1.0/bin/julia',
-                                 julia_dir + '/MentaLiST-65451e75e5cfd168c23989a0ef50fcf545cc8e57/src/MentaLiST.jl',
+                                 julia_dir + '/MentaLiST-65451e7/src/MentaLiST.jl',
                                  subcmd,
                                  '--db','%s' % db_path,
                                  '--threads','%s' % threads,
