@@ -195,6 +195,8 @@ def install_mentalist():
             'https://github.com/WGS-TB/MentaLiST/archive/65451e7.zip'])
         subprocess.call(['unzip', 
             julia_dir+'/github.com/WGS-TB/MentaLiST/archive/65451e7.zip', '-d', julia_dir])
+        subprocess.call(['mv', 
+            julia_dir+'/MentaLiST-65451e7*', julia_dir+'/MentaLiST-65451e7'])
     
     
 
