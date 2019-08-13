@@ -1,7 +1,7 @@
 <tool id="visualization" name="PathOGiST - Visualization" version="1.0.0">
     <description>: Visualize distance matrix</description>
     <requirements>
-        <requirement type="package" version="0.0.4">pathogist</requirement>
+        <requirement type="package" version="0.0.1">pathogist</requirement>
     </requirements>
 
     <command><![CDATA[
@@ -15,8 +15,8 @@
     </inputs>
 
     <outputs>
-        <data name="diagram" label="${tool.name} on ${input.name}" format="png" from_work_dir="sample.png"/>
-        <data name="pdf_output" label="${tool.name} PDF on {$input.name}" format="pdf" from_work_dir="vis.pdf">
+        <data name="diagram" label="Diagram of ${on_string}" format="png" from_work_dir="sample.png"/>
+        <data name="pdf_output" label="PDF of ${on_string}" format="pdf" from_work_dir="vis.pdf">
             <filter>pdf == True</filter>
         </data>
     </outputs>

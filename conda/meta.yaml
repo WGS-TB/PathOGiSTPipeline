@@ -1,9 +1,15 @@
+{% set version = "0.1" %}
 package:
   name: pathogist
-  version: "0.0.1"
+  version: {{ version }}
 
 source:
-  path: ../
+  url: https://github.com/WGS-TB/PathOGiST/archive/v{{ version }}.tar.gz
+  sha256: b8caa400c4ef4453902c589acf3205c2dba966f4778fae48413e2c5a70ffa3ac
+
+build:
+  number: 1
+  skip: True # [osx]
 
 requirements:
   host:
@@ -20,6 +26,13 @@ requirements:
     - cplex >=12.8
     - matplotlib
     - coincbc >=2.9.9
+    - mentalist
+    - prince
+    - snippy
+
+  test:
+    commands:
+      - pathogist -h
 
 about:
   home: https://github.com/WGS-TB/PathOGiST

@@ -1,7 +1,7 @@
 <tool id="concatenator" name="Concatenator" version="1.0.0">
     <description>creates a list of accessions and the associated path to their variant calls</description>
     <requirements>
-        <requirement type="package" version="0.0.4">pathogist</requirement>
+        <requirement type="package" version="0.0.1">pathogist</requirement>
     </requirements>
 
     <command><![CDATA[

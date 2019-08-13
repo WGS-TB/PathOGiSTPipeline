@@ -65,6 +65,22 @@ def create_snp_distance_matrix(calls):
     # Assume that the SNP distance matrix is created in the same was as the MLST distance matrix.
     return create_mlst_distance_matrix(calls)
 
+def create_spotype_distance_matrix(calls):
+    '''
+    Given a dictionary of SpoTyping calls (where sample names are keys to a vector), creates an Spoligotyping
+    distance matrix represented as a Pandas Dataframe object.
+    Distance: hamming distance
+    '''
+    samples = calls.keys()
+    num_samples = len(samples)
+    logger.debug("Got " + str(num_samples) + " samples...")
+    distance_matrix = pandas.DataFrame(numpy.zeros(shape=(num_samples,num_samples),dtype=int),
+                                       index=samples,columns=samples,dtype=int)
+    for sample1,sample2 in itertools.combinations(samples,2):
+        distance_matrix[sample1][sample2] = hamming_distance(calls[sample1],calls[sample2])
+        distance_matrix[sample2][sample1] = distance_matrix[sample1][sample2]
+    return distance_matrix
+
 def match_distance_matrices(distances):
     '''
     Modify a set of distance_matrices so that they all share the same set of samples

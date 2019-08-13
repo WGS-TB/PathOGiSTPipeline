@@ -45,7 +45,7 @@ def read_snp_calls(calls_path):
     Read SNP calls from a text file with list of Snippy tsv or snippy-core output.
     '''
     calls = {}
-    if calls_path.endswith("txt"):
+    if calls_path.endswith("txt") or calls_path.endswith("dat"):
         ref = {}
         sample = {}
         pos_count = {}
@@ -244,17 +244,15 @@ def read_spotype_calls(calls_path):
     calls = {}
     with open(calls_path,'r') as calls_file:
         for line in calls_file:
-            call_path = line.rstrip().split('=')[0]
-            with open(call_path,'r') as call_file:
-                # Skip the header
-                call_file.readline()
-                for line in call_file:
-                    columns = line.rstrip().split('\t')
-                    sample = columns[0]
-                    calls[sample] = numpy.array(columns[1:],dtype=float)
+            values = line.split("\t")
+            sample = values[0]
+        if(len(values[1]) == 44):
+            calls[sample] = values[1]
     assert( len(set([len(calls[sample]) for sample in calls.keys()])) == 1 ), \
-        "Samples do not have the same number of SpoType calls."
+        "Samples do not have the same number of Spoligotype calls."
     return calls
+    
+
 
 def output_clustering(clustering,output_path):
     '''
