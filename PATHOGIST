@@ -252,7 +252,7 @@ def run_mentalist_call(mentalist_args, forward_reads_paths, reverse_reads_paths,
         call_path = '%s/%s_mlst.call' % (temp_dir,accession)
         mentalist_calls_paths.append(call_path)
         call_command = [julia_dir + '/julia-1.1.0/bin/julia',
-                        julia_dir + '/MentaLiST-65451e75e5cfd168c23989a0ef50fcf545cc8e57/src/MentaLiST.jl',
+                        julia_dir + '/MentaLiST-65451e7/src/MentaLiST.jl',
                         'call']
         call_command.extend(['--db', db_path])
         call_command.extend(['-o', call_path])
