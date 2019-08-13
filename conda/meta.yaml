@@ -31,6 +31,7 @@ requirements:
     - kwip
     - vcflib
     - spotyping3
+    - julia ==0.6.1
 
 test:
   commands:
