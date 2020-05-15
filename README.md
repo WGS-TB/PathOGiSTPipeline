@@ -117,3 +117,7 @@ _Fine clusterings file_
 ```bash
 SNP
 ```
+## Citation
+To cite PathOGiST in publications, please use:
+
+Katebi M. et al. (2020) PathOGiST: A Novel Method for Clustering Pathogen Isolates by Combining Multiple Genotyping Signals. In: Martín-Vide C., Vega-Rodríguez M., Wheeler T. (eds) Algorithms for Computational Biology. AlCoB 2020. Lecture Notes in Computer Science, vol 12099. Springer, Cham
