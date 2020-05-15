@@ -120,4 +120,4 @@ SNP
 ## Citation
 To cite PathOGiST in publications, please use:
 
-Katebi M. et al. (2020) PathOGiST: A Novel Method for Clustering Pathogen Isolates by Combining Multiple Genotyping Signals. In: Martín-Vide C., Vega-Rodríguez M., Wheeler T. (eds) Algorithms for Computational Biology. AlCoB 2020. Lecture Notes in Computer Science, vol 12099. Springer, Cham
+<a href="https://dx.doi.org/10.1007%2F978-3-030-42266-0_9">Katebi M. et al. (2020) PathOGiST: A Novel Method for Clustering Pathogen Isolates by Combining Multiple Genotyping Signals. In: Martín-Vide C., Vega-Rodríguez M., Wheeler T. (eds) Algorithms for Computational Biology. AlCoB 2020. Lecture Notes in Computer Science, vol 12099. Springer, Cham.</a>
